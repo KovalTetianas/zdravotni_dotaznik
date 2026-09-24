@@ -208,6 +208,7 @@
     max-height: min(380px, 60vh); overflow: auto; padding: 0 0 6px;
     background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
     box-shadow: 0 12px 32px rgba(27, 34, 48, .16);
+    overscroll-behavior: contain; -webkit-overflow-scrolling: touch; touch-action: pan-y;
   }
   .ac-group {
     position: sticky; top: 0; z-index: 1; padding: 7px 14px; background: var(--bg);
@@ -258,6 +259,18 @@
   .add-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 10px; }
   .rep-list:empty { display: none; }
   .rep-list:empty + .add-row .btn-add { margin-top: 0; }
+
+  /* Instructions */
+  .intro { padding: 26px 26px 28px; }
+  .intro h2 { margin: 0 0 18px; font-size: 22px; font-weight: 600; }
+  .steps { list-style: none; counter-reset: step; margin: 0 0 26px; padding: 0; display: grid; gap: 14px; max-width: 64ch; }
+  .steps li { counter-increment: step; display: grid; grid-template-columns: 34px 1fr; gap: 12px; align-items: start; }
+  .steps li::before {
+    content: counter(step); width: 30px; height: 30px; border-radius: 50%;
+    background: var(--tint); color: var(--accent); font-weight: 700; display: grid; place-items: center;
+  }
+  .intro-link { margin: -12px 0 12px; }
+  .link-btn { background: none; border: 0; padding: 4px 0; color: var(--accent); font-weight: 500; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
   /* Load bar */
   .loadbar {
@@ -311,7 +324,7 @@
     @page { size: A4; margin: 12mm 13mm; }
     html, body { background: #fff; }
     :root { padding: 0; }
-    #langScreen, #formScreen, dialog { display: none !important; }
+    #langScreen, #introScreen, #formScreen, dialog { display: none !important; }
     #printView { display: block; font: 10.5pt/1.35 "Golos Text", Arial, sans-serif; color: #15191F; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .pv-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6mm;
@@ -347,6 +360,29 @@
   </div>
 </div>
 
+<div id="introScreen" class="wrap" hidden>
+  <header class="top">
+    <h1 data-i18n="title"></h1>
+    <div class="lang-switch no-print" role="group" aria-label="Language">
+      <button type="button" data-lang="cs">CS</button>
+      <button type="button" data-lang="uk">UK</button>
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="ru">RU</button>
+    </div>
+  </header>
+  <section class="block intro">
+    <h2 data-i18n="introTitle"></h2>
+    <ol class="steps">
+      <li data-i18n="i1"></li>
+      <li data-i18n="i2"></li>
+      <li data-i18n="i3"></li>
+      <li data-i18n="i4"></li>
+      <li data-i18n="i5"></li>
+    </ol>
+    <button type="button" class="btn-primary" id="introNext" data-i18n="next"></button>
+  </section>
+</div>
+
 <div id="formScreen" class="wrap" hidden>
   <header class="top">
     <h1 data-i18n="title"></h1>
@@ -358,6 +394,7 @@
     </div>
   </header>
 
+  <p class="intro-link no-print"><button type="button" class="link-btn" id="showIntro" data-i18n="showIntro"></button></p>
   <div class="loadbar no-print">
     <p data-i18n="loadText"></p>
     <button type="button" class="btn-sec" id="loadBtn" data-i18n="loadBtn"></button>
@@ -894,6 +931,14 @@ const T = {
     resetText: "Opravdu chcete vymazat formulář a začít vyplňovat znovu?",
     plWhen: "Kdy",
     filledOn: "Vyplněno",
+    introTitle: "Než začnete",
+    i1: "Jméno a příjmení vyplňte přesně tak, jak jsou uvedeny v cestovním pase nebo v českých dokladech.",
+    i2: "Po vyplnění dotazníku klikněte na „Uložit do PDF“. V okně tisku změňte tiskárnu na „Uložit jako PDF“ a soubor uložte.",
+    i3: "Pokud některá povinná pole zůstanou nevyplněná, můžete je nechat prázdná. Doplníme je společně na schůzce.",
+    i4: "Chcete-li dotazník později doplnit nebo upravit, nahrajte nahoře v dotazníku poslední uložené PDF, proveďte změny a uložte ho znovu.",
+    i5: "Vyplněné údaje se nikam neodesílají. Zůstávají pouze ve vašem zařízení jako PDF soubor, který si uložíte.",
+    next: "Další",
+    showIntro: "Pokyny k vyplnění",
     del: "Smazat",
     notSet: "nevybráno", linked: "věk a rok jsou propojené",
     needBirth: "Vyplňte datum narození v osobních údajích a rok se dopočítá sám.",
@@ -1016,6 +1061,14 @@ const T = {
     resetText: "Ви впевнені, що хочете очистити форму й почати заповнювати заново?",
     plWhen: "Коли",
     filledOn: "Заповнено",
+    introTitle: "Перш ніж почати",
+    i1: "Ім'я та прізвище вказуйте точно так, як у закордонному паспорті або чеських документах.",
+    i2: "Після заповнення анкети натисніть «Зберегти в PDF». У вікні друку замість принтера виберіть «Зберегти як PDF» і збережіть файл.",
+    i3: "Якщо деякі обов'язкові поля залишаться незаповненими, їх можна залишити порожніми. Ми заповнимо їх разом на зустрічі.",
+    i4: "Щоб пізніше доповнити або змінити анкету, завантажте вгорі анкети останній збережений PDF, внесіть зміни та збережіть його знову.",
+    i5: "Заповнені дані нікуди не надсилаються. Вони зберігаються лише на вашому пристрої у вигляді PDF-файлу, який ви збережете.",
+    next: "Далі",
+    showIntro: "Інструкція із заповнення",
     del: "Видалити",
     notSet: "не вибрано", linked: "вік і рік пов'язані",
     needBirth: "Заповніть дату народження в особистих даних, і рік обчислиться автоматично.",
@@ -1138,6 +1191,14 @@ const T = {
     resetText: "Are you sure you want to clear the form and start again?",
     plWhen: "When",
     filledOn: "Completed on",
+    introTitle: "Before you start",
+    i1: "Enter your first and last name exactly as they appear in your passport or Czech documents.",
+    i2: "When you have finished, click “Save as PDF”. In the print window, change the printer to “Save as PDF” and save the file.",
+    i3: "If some required fields are left empty, you can leave them blank. We will fill them in together at our meeting.",
+    i4: "To add to or edit the questionnaire later, upload your most recent PDF at the top of the questionnaire, make your changes and save it again.",
+    i5: "Your answers are not sent anywhere. They stay only on your device, in the PDF file you save.",
+    next: "Next",
+    showIntro: "Instructions",
     del: "Delete",
     notSet: "not selected", linked: "age and year are linked",
     needBirth: "Fill in your date of birth in the personal details and the year will be calculated automatically.",
@@ -1260,6 +1321,14 @@ const T = {
     resetText: "Вы уверены, что хотите очистить форму и начать заполнять заново?",
     plWhen: "Когда",
     filledOn: "Заполнено",
+    introTitle: "Перед началом",
+    i1: "Имя и фамилию указывайте точно так, как в загранпаспорте или чешских документах.",
+    i2: "После заполнения анкеты нажмите «Сохранить в PDF». В окне печати вместо принтера выберите «Сохранить как PDF» и сохраните файл.",
+    i3: "Если какие-то обязательные поля останутся незаполненными, их можно оставить пустыми. Мы заполним их вместе на встрече.",
+    i4: "Чтобы позже дополнить или изменить анкету, загрузите вверху анкеты последний сохранённый PDF, внесите изменения и сохраните его снова.",
+    i5: "Заполненные данные никуда не отправляются. Они хранятся только на вашем устройстве в виде PDF-файла, который вы сохраните.",
+    next: "Далее",
+    showIntro: "Инструкция по заполнению",
     del: "Удалить",
     notSet: "не выбрано", linked: "возраст и год связаны",
     needBirth: "Заполните дату рождения в личных данных, и год рассчитается автоматически.",
@@ -1690,19 +1759,16 @@ function acSelect(card, id) {
   acClose(card);
   updateVisibility();
 }
+const openAcCards = () => $$(".card-ill").filter(c => !$(".ac-list", c).hidden);
 document.addEventListener("focusin", e => {
+  // focus moved somewhere else: close lists that don't belong to the focused field
+  openAcCards().forEach(c => { if (!$(".ac", c).contains(e.target)) acClose(c); });
   if (e.target.matches(".ill-input")) acOpen(e.target.closest(".card-ill"), "");
 });
 document.addEventListener("click", e => {
   if (e.target.matches(".ill-input")) {
     const card = e.target.closest(".card-ill");
     if ($(".ac-list", card).hidden) acOpen(card, "");
-  }
-});
-document.addEventListener("focusout", e => {
-  if (e.target.matches(".ill-input")) {
-    const card = e.target.closest(".card-ill");
-    setTimeout(() => { if (document.activeElement !== e.target) acClose(card); }, 120);
   }
 });
 document.addEventListener("keydown", e => {
@@ -1715,13 +1781,14 @@ document.addEventListener("keydown", e => {
   } else if (e.key === "Enter") {
     const a = $(".ac-opt.active", card);
     if (!list.hidden && a) { e.preventDefault(); acSelect(card, a.dataset.d); }
-  } else if (e.key === "Escape") {
+  } else if (e.key === "Escape" || e.key === "Tab") {
     acClose(card);
   }
 });
+// Tap outside the field closes its list (touch-friendly: no closing on blur,
+// so the list can be scrolled with a finger after the keyboard hides)
 document.addEventListener("pointerdown", e => {
-  const o = e.target.closest(".ac-opt");
-  if (o) { e.preventDefault(); acSelect(o.closest(".card-ill"), o.dataset.d); return; }
+  openAcCards().forEach(c => { if (!$(".ac", c).contains(e.target)) acClose(c); });
   const tg = e.target.closest(".ac-toggle");
   if (tg) {
     e.preventDefault();
@@ -1730,6 +1797,13 @@ document.addEventListener("pointerdown", e => {
     else if (document.activeElement === input) acOpen(card, "");
     else input.focus();
   }
+});
+// Mouse: keep focus in the text field while clicking inside the list
+document.addEventListener("mousedown", e => { if (e.target.closest(".ac-list")) e.preventDefault(); });
+// Selection happens on click/tap, which the browser does not fire when the finger scrolls
+document.addEventListener("click", e => {
+  const o = e.target.closest(".ac-opt");
+  if (o) acSelect(o.closest(".card-ill"), o.dataset.d);
 });
 
 /* ================= Event delegation ================= */
@@ -1782,7 +1856,7 @@ document.addEventListener("change", e => {
 
 /* ================= Collapsible sections ================= */
 function initSections() {
-  $$("section.block").forEach((sec, i) => {
+  $$("#form section.block").forEach((sec, i) => {
     if (sec.hasAttribute("data-fixed")) return;
     const head = $(".block-head", sec);
     const body = document.createElement("div");
@@ -1834,15 +1908,19 @@ function setLang(l) {
     }).join("; ");
   });
   $$(".card-ill").forEach(card => { if (card.dataset.disease) $(".ill-input", card).value = dLabel(card.dataset.disease); });
-  $("#langScreen").hidden = true;
-  $("#formScreen").hidden = false;
   applyLang();
 }
+function showScreen(id) {
+  ["langScreen", "introScreen", "formScreen"].forEach(s => { $("#" + s).hidden = s !== id; });
+  window.scrollTo(0, 0);
+}
 $$("[data-lang]").forEach(b => b.addEventListener("click", () => {
-  const first = !$("#langScreen").hidden;
+  const fromStart = !!b.closest("#langScreen");
   setLang(b.dataset.lang);
-  if (first) window.scrollTo(0, 0);
+  if (fromStart) showScreen("introScreen");
 }));
+$("#introNext").addEventListener("click", () => showScreen("formScreen"));
+$("#showIntro").addEventListener("click", () => showScreen("introScreen"));
 
 /* ================= PDF ================= */
 const isActive = el => {
@@ -2004,6 +2082,7 @@ function parsePdfText(text) {
 function restore(data) {
   if (!data || data.v !== DATA_VERSION) return false;
   setLang(data.lang || lang);
+  $("#formScreen").hidden = false;
   for (let i = 0; i < data.reps.length; i++) {
     const hosts = $$("#form [data-rep]");
     if (!hosts[i]) return false;
@@ -2098,7 +2177,7 @@ $("#resetCancel").addEventListener("click", () => $("#resetDlg").close());
 $("#resetConfirm").addEventListener("click", () => {
   $("#resetDlg").close();
   restore({ ...BLANK, lang });
-  $$("section.block").forEach(s => setOpen(s, true));
+  $$("#form section.block").forEach(s => setOpen(s, true));
   const m = $("#loadMsg");
   m.textContent = ""; delete m.dataset.i18n;
   window.scrollTo({ top: 0, behavior: "smooth" });
