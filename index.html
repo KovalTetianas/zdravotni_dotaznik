@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zdravotní dotazník</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #F2F4F7;
+    --surface: #FFFFFF;
+    --ink: #1B2230;
+    --muted: #5A6373;
+    --line: #D3D9E2;
+    --accent: #A8201A;
+    --accent-ink: #FFFFFF;
+    --tint: #F8E8E6;
+    --warn: #8A5A00;
+    --warn-bg: #FFF4DC;
+    --info: #1D3B63;
+    --info-bg: #EAF1FB;
+    --info-line: #C9D9EF;
+    --radius-lg: 14px;
+    --radius-sm: 8px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Golos Text", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  [hidden] { display: none !important; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Language screen ---------- */
+  #langScreen { min-height: 100vh; display: grid; place-items: center; padding: 32px 20px; }
+  .lang-box { width: 100%; max-width: 440px; }
+  .lang-box h1 { font-size: clamp(30px, 7vw, 40px); line-height: 1.1; margin: 0 0 24px; font-weight: 700; letter-spacing: -0.01em; }
+  .lang-sub { color: var(--muted); margin: 0 0 28px; line-height: 1.45; }
+  .lang-list { display: grid; gap: 10px; }
+  .lang-list button {
+    display: flex; justify-content: space-between; align-items: center; width: 100%;
+    padding: 16px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-sm);
+    font-size: 18px; font-weight: 500; cursor: pointer; text-align: left;
+  }
+  .lang-list button:hover { border-color: var(--accent); }
+  .lang-list button small { color: var(--muted); font-size: 14px; font-weight: 400; }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 800px; margin: 0 auto; padding: 0 16px 64px; }
+  header.top {
+    display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: flex-end;
+    padding: 36px 0 24px; border-bottom: 3px solid var(--accent); margin-bottom: 28px;
+  }
+  header.top h1 { margin: 0; font-size: clamp(28px, 6vw, 38px); line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; }
+  .lang-switch { display: flex; gap: 4px; }
+  .lang-switch button {
+    border: 1px solid var(--line); background: var(--surface); padding: 6px 10px; border-radius: 6px;
+    cursor: pointer; font-size: 14px; font-weight: 600; min-width: 42px;
+  }
+  .lang-switch button[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  section.block {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 22px 22px 26px; margin-bottom: 18px;
+  }
+  .block-head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .num {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    background: var(--tint); color: var(--accent); display: grid; place-items: center; font-weight: 700;
+  }
+  .block-head h2 { margin: 0; font-size: 21px; line-height: 1.25; font-weight: 600; }
+  .desc { margin: 0 0 16px; color: var(--muted); max-width: 66ch; }
+
+  .grid { display: grid; gap: 14px 16px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+  .field { display: block; }
+  .field .lbl, .field > label { display: block; font-size: 14px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+  input[type="text"], input[type="number"], input[type="date"], select, textarea {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm);
+    background: var(--surface); min-height: 46px;
+  }
+  textarea { min-height: 92px; resize: vertical; line-height: 1.45; }
+  select { cursor: pointer; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--tint); }
+  input:disabled { background: var(--bg); color: var(--muted); cursor: not-allowed; }
+
+  .q { font-weight: 600; margin: 0 0 10px; max-width: 66ch; }
+  .sub { margin-top: 20px; padding-top: 18px; border-top: 1px dashed var(--line); }
+  .mt { margin-top: 14px; }
+
+  /* Segmented toggles */
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; padding: 3px; background: var(--bg); flex-wrap: wrap; }
+  .seg label { position: relative; cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span { display: block; padding: 8px 22px; border-radius: 7px; font-weight: 500; min-width: 72px; text-align: center; }
+  .seg input:checked + span { background: var(--accent); color: var(--accent-ink); }
+  .seg input:focus-visible + span { outline: 3px solid var(--accent); outline-offset: 2px; }
+  .seg.wide span { min-width: 0; padding: 8px 16px; }
+
+  /* Single-choice list */
+  .choices { display: grid; gap: 8px; max-width: 440px; }
+  .choices label {
+    display: flex; align-items: center; gap: 12px; padding: 11px 14px;
+    border: 1px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; background: var(--surface);
+  }
+  .choices input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; flex: none; }
+  .choices label:has(input:checked) { border-color: var(--accent); background: var(--tint); }
+
+  .check { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; cursor: pointer; }
+  .check input { accent-color: var(--accent); width: 18px; height: 18px; margin: 0; }
+
+  /* Chips (addictions) */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .chips button {
+    border: 1px solid var(--line); background: var(--surface); padding: 7px 14px; border-radius: 999px; cursor: pointer; font-size: 15px;
+  }
+  .chips button:hover { border-color: var(--accent); }
+  .chips button[aria-pressed="true"] { background: var(--tint); border-color: var(--accent); color: var(--accent); }
+
+  /* Repeatable cards */
+  .rep-list { display: grid; gap: 12px; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px 20px; background: var(--surface); }
+  .card .card { background: var(--bg); padding: 14px 16px 16px; }
+  .card .card input, .card .card select, .card .card textarea, .card .card .choices label { background: var(--surface); }
+  .card-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .card-title { margin: 0; font-size: 17px; font-weight: 600; }
+  .card .card .card-title { font-size: 16px; }
+  .btn-del {
+    border: 1px solid var(--line); background: var(--surface); color: var(--accent);
+    padding: 5px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;
+  }
+  .btn-del:hover:not(:disabled) { border-color: var(--accent); }
+  .btn-del:disabled { color: var(--muted); opacity: .45; cursor: not-allowed; }
+  .btn-add {
+    margin-top: 12px; width: 100%; padding: 11px 16px; border-radius: var(--radius-sm);
+    border: 1px dashed var(--accent); background: transparent; color: var(--accent); font-weight: 600; cursor: pointer;
+  }
+  .btn-add:hover { background: var(--tint); }
+  .btn-add::before { content: "+ "; }
+
+  /* Age ↔ year pair */
+  .agepair + .agepair { margin-top: 22px; }
+  .pair {
+    display: grid; grid-template-columns: 1fr auto; gap: 14px 18px; align-items: end;
+    padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--bg);
+  }
+  .age-top { margin-bottom: 4px; }
+  .age-out { font-size: 26px; font-weight: 700; line-height: 1.1; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .age-out.unset { color: var(--muted); font-weight: 500; font-size: 18px; }
+  .scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .year-box { width: 128px; }
+  .year-box .lbl { font-size: 13px; color: var(--muted); margin-bottom: 4px; display: block; }
+  .year-box input { text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .link-mark { font-size: 12px; color: var(--muted); margin-top: 4px; text-align: center; }
+  .note { margin: 8px 0 0; font-size: 14px; padding: 8px 12px; border-radius: 6px; background: var(--warn-bg); color: var(--warn); }
+  .note:empty { display: none; }
+
+  input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; margin: 0; cursor: pointer; }
+  input[type="range"].unset { opacity: .45; }
+
+  .cig-top { margin-bottom: 6px; }
+  .cig-out { font-size: 20px; font-weight: 700; color: var(--accent); }
+  .cig-out.unset { color: var(--muted); font-weight: 500; font-size: 17px; }
+  .ticks { position: relative; height: 22px; font-size: 13px; color: var(--muted); }
+  .ticks span { position: absolute; top: 0; transform: translateX(-50%); }
+  .ticks span:first-child { transform: none; }
+  .ticks span:last-child { transform: translateX(-100%); }
+
+  /* Month + year */
+  .ym { display: grid; grid-template-columns: 96px 1fr; gap: 8px; }
+
+  /* Illness section */
+  .exempt { margin: 0 0 16px; }
+  .exempt p { margin: 0 0 8px; font-weight: 600; }
+  .exempt ul { margin: 0; padding-left: 20px; color: var(--muted); }
+  .exempt li { margin-bottom: 6px; }
+  .info {
+    display: flex; gap: 12px; align-items: flex-start; margin: 0 0 18px; padding: 14px 16px;
+    background: var(--info-bg); color: var(--info); border: 1px solid var(--info-line); border-radius: 10px; font-size: 15px;
+  }
+  .info svg { flex: none; margin-top: 2px; }
+  .info p { margin: 0; }
+
+  /* Illness autocomplete */
+  .ac, .ac-box { position: relative; }
+  .ac-box input { padding-right: 46px; }
+  .ac-toggle {
+    position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; border: 0; background: transparent; border-radius: 6px;
+    color: var(--muted); cursor: pointer; display: grid; place-items: center;
+  }
+  .ac-toggle:hover { background: var(--bg); color: var(--ink); }
+  .ac-box input[aria-expanded="true"] + .ac-toggle svg { transform: rotate(180deg); }
+  .ac-list {
+    position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px);
+    max-height: min(380px, 60vh); overflow: auto; padding: 0 0 6px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: 0 12px 32px rgba(27, 34, 48, .16);
+  }
+  .ac-group {
+    position: sticky; top: 0; z-index: 1; padding: 7px 14px; background: var(--bg);
+    font-size: 13px; font-weight: 600; color: var(--muted); border-bottom: 1px solid var(--line);
+  }
+  .ac-opt { padding: 8px 14px 8px 22px; cursor: pointer; line-height: 1.35; }
+  .ac-opt:hover { background: var(--bg); }
+  .ac-opt.active { background: var(--tint); }
+  .ac-opt[aria-selected="true"] { color: var(--accent); font-weight: 600; }
+  .ac-opt mark { background: none; color: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+  .ac-sep { border-top: 1px solid var(--line); margin: 6px 0; }
+  .ac-other { font-weight: 700; padding-left: 14px; }
+  .ac-empty { padding: 12px 14px 4px; color: var(--muted); font-size: 14px; }
+
+  .qa { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--line); }
+  .setno {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+    margin-top: 20px; padding: 12px 14px; background: var(--bg); border-radius: 10px;
+  }
+  .setno p { margin: 0; font-size: 15px; }
+  .btn-sec {
+    border: 1px solid var(--ink); background: var(--surface); padding: 8px 14px;
+    border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;
+  }
+  .btn-sec:hover { background: var(--ink); color: #fff; }
+
+  /* Collapsible sections */
+  .block-head h2 { flex: 1; }
+  .block-title { flex: 1; }
+  .block-toggle {
+    display: flex; align-items: center; gap: 12px; width: 100%; padding: 0; margin: 0;
+    border: 0; background: none; text-align: left; cursor: pointer; color: inherit;
+  }
+  .chev {
+    flex: none; width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center;
+    color: var(--muted); transition: transform .2s ease;
+  }
+  .block-toggle:hover .chev { background: var(--bg); color: var(--ink); }
+  .block-toggle[aria-expanded="false"] .chev { transform: rotate(-90deg); }
+  .block.collapsed .block-head { margin-bottom: 0; }
+  .block.collapsed { padding-bottom: 22px; }
+  .block.has-err { border-color: var(--accent); }
+  .block.has-err .num { background: var(--accent); color: #fff; }
+  @media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+
+  .card-name { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+  .tag { font-size: 13px; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px; }
+  .add-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0 10px; }
+  .rep-list:empty { display: none; }
+  .rep-list:empty + .add-row .btn-add { margin-top: 0; }
+
+  /* Load bar */
+  .loadbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    margin: 0 0 18px; padding: 14px 18px; background: var(--surface);
+    border: 1px dashed var(--line); border-radius: var(--radius-lg);
+  }
+  .loadbar p { margin: 0; }
+  .loadbar > p:first-child { flex: 1 1 260px; font-weight: 500; }
+  .load-msg { flex-basis: 100%; font-size: 14px; color: var(--muted); }
+  .load-msg:empty { display: none; }
+  .load-msg.ok { color: #1F6B3A; }
+  .load-msg.bad { color: var(--accent); }
+
+  /* Dialog */
+  dialog {
+    border: 0; border-radius: var(--radius-lg); padding: 24px; width: calc(100% - 32px); max-width: 460px;
+    color: var(--ink); box-shadow: 0 20px 60px rgba(27, 34, 48, .3);
+  }
+  dialog::backdrop { background: rgba(27, 34, 48, .45); }
+  dialog p { margin: 0 0 20px; font-size: 17px; font-weight: 500; }
+  .dlg-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+  .dlg-actions .btn-primary { padding: 10px 18px; font-size: 16px; }
+
+
+  /* Validation */
+  .invalid { border-color: var(--accent) !important; background: #FFF7F6 !important; }
+  .err { color: var(--accent); font-size: 14px; margin: 6px 0 0; }
+  .form-msg { color: var(--accent); font-weight: 500; margin: 0; }
+
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 28px; }
+  .btn-primary {
+    background: var(--accent); color: var(--accent-ink); border: 0; border-radius: var(--radius-sm);
+    padding: 14px 26px; font-weight: 600; font-size: 17px; cursor: pointer;
+  }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .actions .hint { margin: 0; color: var(--muted); font-size: 14px; }
+
+  @media (max-width: 520px) {
+    section.block { padding: 18px 14px 22px; }
+    .card { padding: 14px 12px 16px; }
+    .pair { grid-template-columns: 1fr; }
+    .year-box { width: 100%; }
+    .link-mark { text-align: left; }
+  }
+
+  .hint-s { display: block; font-size: 13px; color: var(--muted); margin-top: 5px; }
+  #printView { display: none; }
+
+  @media print {
+    @page { size: A4; margin: 12mm 13mm; }
+    html, body { background: #fff; }
+    :root { padding: 0; }
+    #langScreen, #formScreen, dialog { display: none !important; }
+    #printView { display: block; font: 10.5pt/1.35 "Golos Text", Arial, sans-serif; color: #15191F; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pv-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6mm;
+      border-bottom: 1.5pt solid #A8201A; padding-bottom: 2mm; margin-bottom: 4mm; }
+    .pv-head h1 { font-size: 16pt; margin: 0; }
+    .pv-head p { margin: 0; font-size: 9pt; color: #555; white-space: nowrap; }
+    .pv-sec { margin: 0 0 4.5mm; }
+    .pv-sec h2 { font-size: 11.5pt; margin: 0 0 1mm; break-after: avoid; }
+    .pv-sec h2 .n { color: #A8201A; margin-right: 1.5mm; }
+    table.pv { width: 100%; border-collapse: collapse; }
+    .pv th, .pv td { text-align: left; vertical-align: top; padding: 1.1mm 2mm 1.1mm 0; border-bottom: .4pt solid #D8DCE2; }
+    .pv th { font-weight: 400; color: #4A5260; width: 58%; }
+    .pv td { font-weight: 600; white-space: pre-wrap; }
+    .pv tr { break-inside: avoid; }
+    .pv tr.pv-card td { font-weight: 700; color: #A8201A; padding-top: 2.4mm; border-bottom: .8pt solid #E6B8B5; }
+    #pdfData { margin-top: 6mm; color: #A3AAB5; font: 5pt/1.3 "Courier New", Courier, monospace; }
+    #pdfData p { font: 7pt/1.3 "Golos Text", Arial, sans-serif; margin: 0 0 1mm; }
+    .pd-line { white-space: nowrap; }
+  }
+</style>
+</head>
+<body>
+
+<div id="langScreen">
+  <div class="lang-box">
+    <h1>Zdravotní dotazník</h1>
+    <div class="lang-list">
+      <button type="button" data-lang="cs">Čeština <small>CS</small></button>
+      <button type="button" data-lang="uk">Українська <small>UK</small></button>
+      <button type="button" data-lang="en">English <small>EN</small></button>
+      <button type="button" data-lang="ru">Русский <small>RU</small></button>
+    </div>
+  </div>
+</div>
+
+<div id="formScreen" class="wrap" hidden>
+  <header class="top">
+    <h1 data-i18n="title"></h1>
+    <div class="lang-switch no-print" role="group" aria-label="Language">
+      <button type="button" data-lang="cs">CS</button>
+      <button type="button" data-lang="uk">UK</button>
+      <button type="button" data-lang="en">EN</button>
+      <button type="button" data-lang="ru">RU</button>
+    </div>
+  </header>
+
+  <div class="loadbar no-print">
+    <p data-i18n="loadText"></p>
+    <button type="button" class="btn-sec" id="loadBtn" data-i18n="loadBtn"></button>
+    <input type="file" id="loadFile" accept="application/pdf,.pdf" hidden>
+    <p class="load-msg" id="loadMsg" role="status"></p>
+  </div>
+
+  <form id="form" onsubmit="return false" novalidate>
+
+    <!-- 1 -->
+    <section class="block" data-scope data-fixed>
+      <div class="block-head"><h2 data-i18n="s1"></h2></div>
+      <div class="grid">
+        <div class="field"><label for="firstName" data-i18n="firstName"></label><input type="text" id="firstName" autocomplete="given-name"></div>
+        <div class="field"><label for="lastName" data-i18n="lastName"></label><input type="text" id="lastName" autocomplete="family-name"></div>
+        <div class="field"><label for="birth" data-i18n="birth"></label><input type="date" id="birth" autocomplete="bday"></div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="block" data-scope>
+      <div class="block-head"><span class="num">1</span><h2 data-i18n="s2"></h2></div>
+      <div class="grid">
+        <div class="field"><label for="height" data-i18n="height"></label><input type="number" id="height" inputmode="numeric" min="50" max="250" step="1"></div>
+        <div class="field"><label for="weight" data-i18n="weight"></label><input type="number" id="weight" inputmode="decimal" min="20" max="300" step="0.1"></div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="block" data-scope>
+      <div class="block-head"><span class="num">2</span><h2 data-i18n="s3"></h2></div>
+      <p class="q" data-i18n="smokeQ"></p>
+      <div data-slot="yn:smoke"></div>
+
+      <div class="sub" data-when="smoke=yes" hidden>
+        <p class="q" data-i18n="status"></p>
+        <div data-slot="radios:smokeStatus:now=smokeNow,quit=smokeQuit"></div>
+
+        <div class="sub" data-when="smokeStatus=now|quit" hidden>
+          <div class="agepair" data-role="start" data-q="smokeStartQ" data-yl="fromYear"></div>
+          <div class="agepair" data-role="stop" data-q="smokeStopQ" data-yl="toYear" data-when="smokeStatus=quit" hidden></div>
+          <div class="sub">
+            <p class="q" id="cigQ"></p>
+            <div id="cigs"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="block" data-scope>
+      <div class="block-head"><span class="num">3</span><h2 data-i18n="s4"></h2></div>
+      <p class="desc" data-i18n="addDesc"></p>
+      <div data-slot="yn:addict"></div>
+      <div class="sub" data-when="addict=yes" hidden>
+        <div data-rep="addiction"></div>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="block" data-scope>
+      <div class="block-head"><span class="num">4</span><h2 data-i18n="s5"></h2></div>
+      <p class="desc" data-i18n="s5desc"></p>
+      <div data-slot="yn:defect"></div>
+      <div class="sub" data-when="defect=yes" hidden>
+        <div data-rep="defect"></div>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="block" data-scope>
+      <div class="block-head"><span class="num">5</span><h2 data-i18n="s6"></h2></div>
+      <p class="desc" data-i18n="s6desc"></p>
+      <div data-slot="yn:ill"></div>
+      <div class="sub" data-when="ill=yes" hidden>
+        <div class="exempt no-print">
+          <p data-i18n="exTitle"></p>
+          <ul>
+            <li data-i18n="ex1"></li><li data-i18n="ex2"></li><li data-i18n="ex3"></li><li data-i18n="ex4"></li><li data-i18n="ex5"></li>
+          </ul>
+        </div>
+        <div class="info no-print" role="note">
+          <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="9.1" y="8.3" width="1.8" height="6.2" rx=".9" fill="currentColor"/><circle cx="10" cy="5.6" r="1.1" fill="currentColor"/></svg>
+          <p data-i18n="infoText"></p>
+        </div>
+        <div data-rep="illness"></div>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="block" data-scope>
+      <div class="block-head"><span class="num">6</span><h2 data-i18n="s7"></h2></div>
+      <p class="desc" data-i18n="s7desc"></p>
+      <div data-slot="yn:injury"></div>
+      <div class="sub" data-when="injury=yes" hidden>
+        <div data-rep="injury"></div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="block" data-scope>
+      <div class="block-head"><span class="num">7</span><h2 data-i18n="s8"></h2></div>
+      <p class="desc" data-i18n="s8desc"></p>
+      <div class="grid">
+        <label class="field"><span class="lbl"><span data-i18n="firstName"></span> *</span><input type="text" required></label>
+        <label class="field"><span class="lbl"><span data-i18n="lastName"></span> *</span><input type="text" required></label>
+        <label class="field"><span class="lbl"><span data-i18n="street1"></span> *</span><input type="text" required></label>
+        <label class="field"><span class="lbl"><span data-i18n="numPop"></span> *</span><input type="text" required></label>
+        <label class="field"><span class="lbl" data-i18n="numOr"></span><input type="text"></label>
+        <label class="field"><span class="lbl"><span data-i18n="town"></span> *</span><input type="text" required></label>
+        <label class="field"><span class="lbl"><span data-i18n="zip"></span> *</span><input type="text" inputmode="numeric" maxlength="6" required></label>
+      </div>
+    </section>
+
+    <div class="actions no-print">
+      <button type="button" class="btn-primary" id="pdfBtn" data-i18n="savePdf"></button>
+      <button type="button" class="btn-sec" id="resetBtn" data-i18n="resetBtn"></button>
+      <p class="hint" data-i18n="pdfHint"></p>
+      <p class="form-msg" id="formMsg" role="alert"></p>
+    </div>
+  </form>
+</div>
+
+<div id="printView"></div>
+
+<dialog id="resetDlg" aria-labelledby="resetText">
+  <p id="resetText" data-i18n="resetText"></p>
+  <div class="dlg-actions">
+    <button type="button" class="btn-sec" id="resetConfirm" data-i18n="resetBtn"></button>
+    <button type="button" class="btn-primary" id="resetCancel" data-i18n="dlgContinue"></button>
+  </div>
+</dialog>
+
+<dialog id="missingDlg" aria-labelledby="dlgText">
+  <p id="dlgText" data-i18n="dlgText"></p>
+  <div class="dlg-actions">
+    <button type="button" class="btn-sec" id="dlgDownload" data-i18n="dlgDownload"></button>
+    <button type="button" class="btn-primary" id="dlgContinue" data-i18n="dlgContinue"></button>
+  </div>
+</dialog>
+
+<script>
+/* ================= Disease catalogue: [cs, uk, en, ru] ================= */
+const CATS = (() => {
+  const SEP = [" - ", " – ", " – ", " – "];
+  const join = (a, b) => a.map((x, i) => x + SEP[i] + b[i]);
+
+  const ORGANS = [
+    ["Děloha", "Матка", "Uterus", "Матка"],
+    ["Dutina ústní", "Ротова порожнина", "Oral cavity", "Полость рта"],
+    ["Hltan", "Глотка", "Pharynx", "Глотка"],
+    ["Hrtan", "Гортань", "Larynx", "Гортань"],
+    ["Játra a žlučové cesty", "Печінка та жовчні шляхи", "Liver and bile ducts", "Печень и желчные пути"],
+    ["Jícen", "Стравохід", "Oesophagus", "Пищевод"],
+    ["Konečník a řitní kanál", "Пряма кишка та анальний канал", "Rectum and anal canal", "Прямая кишка и анальный канал"],
+    ["Kosti a klouby", "Кістки та суглоби", "Bones and joints", "Кости и суставы"],
+    ["Krev", "Кров", "Blood", "Кровь"],
+    ["Kůže", "Шкіра", "Skin", "Кожа"],
+    ["Ledviny", "Нирки", "Kidneys", "Почки"],
+    ["Mícha a mozkové nervy", "Спинний мозок і черепні нерви", "Spinal cord and cranial nerves", "Спинной мозг и черепные нервы"],
+    ["Mízní uzliny", "Лімфатичні вузли", "Lymph nodes", "Лимфатические узлы"],
+    ["Močovod a močový měchýř", "Сечовід і сечовий міхур", "Ureter and bladder", "Мочеточник и мочевой пузырь"],
+    ["Mozek", "Головний мозок", "Brain", "Головной мозг"],
+    ["Nadledviny", "Надниркові залози", "Adrenal glands", "Надпочечники"],
+    ["Nervy a nervová soustava", "Нерви та нервова система", "Nerves and nervous system", "Нервы и нервная система"],
+    ["Nosní dutiny a střední ucho", "Носові пазухи та середнє вухо", "Nasal sinuses and middle ear", "Носовые пазухи и среднее ухо"],
+    ["Nosohltan", "Носоглотка", "Nasopharynx", "Носоглотка"],
+    ["Oko", "Око", "Eye", "Глаз"],
+    ["Plíce", "Легені", "Lungs", "Лёгкие"],
+    ["Pochva", "Піхва", "Vagina", "Влагалище"],
+    ["Prostata", "Простата", "Prostate", "Простата"],
+    ["Prs", "Молочна залоза", "Breast", "Молочная железа"],
+    ["Pyj", "Статевий член", "Penis", "Половой член"],
+    ["Slinivka břišní", "Підшлункова залоза", "Pancreas", "Поджелудочная железа"],
+    ["Srdce a mezihrudí", "Серце та середостіння", "Heart and mediastinum", "Сердце и средостение"],
+    ["Štítná žláza", "Щитоподібна залоза", "Thyroid gland", "Щитовидная железа"],
+    ["Tenké střevo", "Тонка кишка", "Small intestine", "Тонкая кишка"],
+    ["Tlusté střevo", "Товста кишка", "Large intestine (colon)", "Толстая кишка"],
+    ["Vaječníky a vejcovody", "Яєчники та маткові труби", "Ovaries and fallopian tubes", "Яичники и маточные трубы"],
+    ["Varlata", "Яєчка", "Testicles", "Яички"],
+    ["Žaludek", "Шлунок", "Stomach", "Желудок"],
+    ["Zevní pohlavní orgány", "Зовнішні статеві органи", "External genitals", "Наружные половые органы"]
+  ];
+  const MALIG = ["zhoubný nádor", "злоякісна пухлина", "malignant tumour", "злокачественная опухоль"];
+  const BENIGN = ["nezhoubný nádor", "доброякісна пухлина", "benign tumour", "доброкачественная опухоль"];
+
+  const EYE = {
+    A: ["Dalekozrakost (brýle / čočky na blízko) - dioptrie 0,25 -7,75", "Далекозорість (окуляри / лінзи для близу), від 0,25 до 7,75 дптр", "Long-sightedness (reading glasses / lenses), 0.25 to 7.75 dioptres", "Дальнозоркость (очки / линзы для близи), от 0,25 до 7,75 дптр"],
+    B: ["Dalekozrakost (brýle / čočky na blízko) nad 8 dioptrií včetně", "Далекозорість (окуляри / лінзи для близу), 8 дптр і більше", "Long-sightedness (reading glasses / lenses), 8 dioptres or more", "Дальнозоркость (очки / линзы для близи), 8 дптр и более"],
+    C: ["Glaukom (zelený zákal)", "Глаукома", "Glaucoma", "Глаукома"],
+    D: ["Krátkozrakost (brýle / čočky na dálku) dioptrie 0,25 -7,75", "Короткозорість (окуляри / лінзи для далечини), від 0,25 до 7,75 дптр", "Short-sightedness (distance glasses / lenses), 0.25 to 7.75 dioptres", "Близорукость (очки / линзы для дали), от 0,25 до 7,75 дптр"],
+    E: ["Krátkozrakost (brýle / čočky na dálku) nad 8 dioptrií včetně", "Короткозорість (окуляри / лінзи для далечини), 8 дптр і більше", "Short-sightedness (distance glasses / lenses), 8 dioptres or more", "Близорукость (очки / линзы для дали), 8 дптр и более"],
+    F: ["Nemoci zrakového nervu", "Хвороби зорового нерва", "Optic nerve diseases", "Болезни зрительного нерва"],
+    G: ["Poruchy vidění", "Порушення зору", "Visual impairment", "Нарушения зрения"],
+    H: ["Slepota", "Сліпота", "Blindness", "Слепота"],
+    I: ["Šedý zákal", "Катаракта", "Cataract", "Катаракта"]
+  };
+  const EYES = { both: ["obě oči", "обидва ока", "both eyes", "оба глаза"], R: ["pravé oko", "праве око", "right eye", "правый глаз"], L: ["levé oko", "ліве око", "left eye", "левый глаз"] };
+  const EAR = {
+    H: ["Hluchota", "Глухота", "Deafness", "Глухота"],
+    M: ["Meniérova nemoc", "Хвороба Меньєра", "Ménière's disease", "Болезнь Меньера"],
+    P: ["Porucha sluchu", "Порушення слуху", "Hearing impairment", "Нарушение слуха"],
+    T: ["Tinnitus (ušní šelest)", "Тинітус (шум у вухах)", "Tinnitus (ringing in the ears)", "Тиннитус (шум в ушах)"],
+    Z: ["Záněty ucha", "Запалення вуха (отит)", "Ear inflammation (otitis)", "Воспаление уха (отит)"],
+    V: ["Závratě ušního původu", "Запаморочення вушного походження", "Dizziness of inner-ear origin", "Головокружение ушного происхождения"]
+  };
+  const EARS = { both: ["obě uši", "обидва вуха", "both ears", "оба уха"], R: ["pravé ucho", "праве вухо", "right ear", "правое ухо"], L: ["levé ucho", "ліве вухо", "left ear", "левое ухо"] };
+
+  const JOINTS = [
+    [["ručních kloubů levé ruky", "суглобів лівої кисті", "the left hand", "суставов левой кисти"], ["ručních kloubů pravé ruky", "суглобів правої кисті", "the right hand", "суставов правой кисти"], ["ručních kloubů obou rukou", "суглобів обох кистей", "both hands", "суставов обеих кистей"]],
+    [["levého zápěstí", "лівого зап'ястя", "the left wrist", "левого запястья"], ["pravého zápěstí", "правого зап'ястя", "the right wrist", "правого запястья"], ["obou zápěstí", "обох зап'ясть", "both wrists", "обоих запястий"]],
+    [["levého lokte", "лівого ліктя", "the left elbow", "левого локтя"], ["pravého lokte", "правого ліктя", "the right elbow", "правого локтя"], ["obou loktů", "обох ліктів", "both elbows", "обоих локтей"]],
+    [["levého ramene", "лівого плеча", "the left shoulder", "левого плеча"], ["pravého ramene", "правого плеча", "the right shoulder", "правого плеча"], ["obou ramen", "обох плечей", "both shoulders", "обоих плеч"]],
+    [["levé kyčle", "лівого кульшового суглоба", "the left hip", "левого тазобедренного сустава"], ["pravé kyčle", "правого кульшового суглоба", "the right hip", "правого тазобедренного сустава"], ["obou kyčlí", "обох кульшових суглобів", "both hips", "обоих тазобедренных суставов"]],
+    [["levého kolene", "лівого коліна", "the left knee", "левого колена"], ["pravého kolene", "правого коліна", "the right knee", "правого колена"], ["obou kolen", "обох колін", "both knees", "обоих коленей"]],
+    [["levého kotníku", "лівого гомілковостопного суглоба", "the left ankle", "левого голеностопного сустава"], ["pravého kotníku", "правого гомілковостопного суглоба", "the right ankle", "правого голеностопного сустава"], ["obou kotníků", "обох гомілковостопних суглобів", "both ankles", "обоих голеностопных суставов"]]
+  ];
+  const ARTH = ["Artróza ", "Артроз ", "Arthrosis of ", "Артроз "];
+
+  return [
+    { n: ["Infekční a parazitární nemoci", "Інфекційні та паразитарні хвороби", "Infectious and parasitic diseases", "Инфекционные и паразитарные болезни"], d: [
+      ["Akutní dětská obrna", "Гострий поліомієліт (дитячий параліч)", "Acute poliomyelitis (polio)", "Острый полиомиелит (детский паралич)"],
+      ["Borelióza", "Бореліоз (хвороба Лайма)", "Lyme disease (borreliosis)", "Боррелиоз (болезнь Лайма)"],
+      ["Černý kašel", "Кашлюк", "Whooping cough", "Коклюш"],
+      ["COVID-19", "COVID-19", "COVID-19", "COVID-19"],
+      ["Encefalitida", "Енцефаліт", "Encephalitis", "Энцефалит"],
+      ["Hepatitida (žloutenka) typu A", "Гепатит (жовтяниця) типу A", "Hepatitis (jaundice) type A", "Гепатит (желтуха) типа A"],
+      ["Hepatitida (žloutenka) typu B", "Гепатит (жовтяниця) типу B", "Hepatitis (jaundice) type B", "Гепатит (желтуха) типа B"],
+      ["Hepatitida (žloutenka) typu C", "Гепатит (жовтяниця) типу C", "Hepatitis (jaundice) type C", "Гепатит (желтуха) типа C"],
+      ["Hepatitida (žloutenka) typu E", "Гепатит (жовтяниця) типу E", "Hepatitis (jaundice) type E", "Гепатит (желтуха) типа E"],
+      ["Meningitida (zánět mozkových blan)", "Менінгіт (запалення мозкових оболонок)", "Meningitis (inflammation of the brain membranes)", "Менингит (воспаление мозговых оболочек)"],
+      ["Mononukleóza", "Мононуклеоз", "Mononucleosis", "Мононуклеоз"],
+      ["Pohlavně přenosné nemoci", "Хвороби, що передаються статевим шляхом", "Sexually transmitted diseases", "Болезни, передающиеся половым путём"],
+      ["Salmonela", "Сальмонельоз", "Salmonella", "Сальмонеллёз"],
+      ["Sepse (otrava krve)", "Сепсис (зараження крові)", "Sepsis (blood poisoning)", "Сепсис (заражение крови)"],
+      ["Spála", "Скарлатина", "Scarlet fever", "Скарлатина"],
+      ["Stafylokoková infekce", "Стафілококова інфекція", "Staphylococcal infection", "Стафилококковая инфекция"],
+      ["Streptokoková infekce", "Стрептококова інфекція", "Streptococcal infection", "Стрептококковая инфекция"],
+      ["Střevní infekce", "Кишкова інфекція", "Intestinal infection", "Кишечная инфекция"],
+      ["Tuberkulóza TBC", "Туберкульоз (ТБ)", "Tuberculosis (TB)", "Туберкулёз (ТБ)"],
+      ["Pásový opar", "Оперізувальний лишай", "Shingles", "Опоясывающий лишай"]
+    ]},
+    { n: ["Nemoci oběhové soustavy", "Хвороби системи кровообігу", "Circulatory system diseases", "Болезни системы кровообращения"], d: [
+      ["Aneuryzma (výduť)", "Аневризма", "Aneurysm", "Аневризма"],
+      ["Angina pectoris", "Стенокардія", "Angina pectoris", "Стенокардия"],
+      ["Ateroskleróza", "Атеросклероз", "Atherosclerosis", "Атеросклероз"],
+      ["Cévní nemoci mozku - mozkový infarkt, CMP", "Цереброваскулярні хвороби – інфаркт мозку, інсульт", "Cerebrovascular disease – cerebral infarction, stroke", "Цереброваскулярные болезни – инфаркт мозга, инсульт"],
+      ["Embolie/trombóza", "Емболія/тромбоз", "Embolism/thrombosis", "Эмболия/тромбоз"],
+      ["Hypertenze/vysoký krevní tlak", "Гіпертонія/високий артеріальний тиск", "Hypertension/high blood pressure", "Гипертония/высокое давление"],
+      ["Hypotenze (nízký tlak)", "Гіпотонія (низький тиск)", "Hypotension (low blood pressure)", "Гипотония (низкое давление)"],
+      ["Infarkt myokardu", "Інфаркт міокарда", "Myocardial infarction (heart attack)", "Инфаркт миокарда"],
+      ["Ischemická choroba srdeční", "Ішемічна хвороба серця", "Coronary heart disease", "Ишемическая болезнь сердца"],
+      ["Poruchy srdečního rytmu (arytmie)", "Порушення серцевого ритму (аритмія)", "Heart rhythm disorders (arrhythmia)", "Нарушения сердечного ритма (аритмия)"],
+      ["Revmatická horečka", "Ревматична гарячка", "Rheumatic fever", "Ревматическая лихорадка"],
+      ["Vada chlopně", "Вада серцевого клапана", "Heart valve defect", "Порок клапана сердца"],
+      ["Varixy (křečové žíly) obou dolních končetin", "Варикозне розширення вен обох ніг", "Varicose veins of both legs", "Варикозное расширение вен обеих ног"],
+      ["Varixy (křečové žíly) levé dolní končetiny", "Варикозне розширення вен лівої ноги", "Varicose veins of the left leg", "Варикозное расширение вен левой ноги"],
+      ["Varixy (křečové žíly) pravé dolní končetiny", "Варикозне розширення вен правої ноги", "Varicose veins of the right leg", "Варикозное расширение вен правой ноги"],
+      ["Vrozené vady srdce, šelesty", "Вроджені вади серця, шуми", "Congenital heart defects, heart murmurs", "Врождённые пороки сердца, шумы"],
+      ["Zánět srdce", "Запалення серця", "Inflammation of the heart", "Воспаление сердца"],
+      ["Záněty žil", "Запалення вен (флебіт)", "Phlebitis (inflamed veins)", "Воспаление вен (флебит)"],
+      ["Katetrizace srdečních tepen bez infarktu", "Катетеризація коронарних артерій без інфаркту", "Coronary catheterisation without heart attack", "Катетеризация коронарных артерий без инфаркта"]
+    ]},
+    { n: ["Nemoci dýchací soustavy", "Хвороби органів дихання", "Respiratory diseases", "Болезни органов дыхания"], d: [
+      ["Akutní infekce/zánět horních dýchacích cest", "Гостра інфекція/запалення верхніх дихальних шляхів", "Acute upper respiratory infection/inflammation", "Острая инфекция/воспаление верхних дыхательных путей"],
+      ["Alergie", "Алергія", "Allergy", "Аллергия"],
+      ["Astma - lehké", "Астма – легка", "Asthma – mild", "Астма – лёгкая"],
+      ["Astma - střední", "Астма – середня", "Asthma – moderate", "Астма – средняя"],
+      ["Astma - těžké", "Астма – тяжка", "Asthma – severe", "Астма – тяжёлая"],
+      ["Bronchitida (zánět průdušek)", "Бронхіт", "Bronchitis", "Бронхит"],
+      ["CHOPN chronická obstrukční plicní nemoc", "ХОЗЛ – хронічне обструктивне захворювання легень", "COPD – chronic obstructive pulmonary disease", "ХОБЛ – хроническая обструктивная болезнь лёгких"],
+      ["Plicní sarkoidóza", "Саркоїдоз легень", "Pulmonary sarcoidosis", "Саркоидоз лёгких"],
+      ["Pneumonie (zápal/zánět plic)", "Пневмонія (запалення легень)", "Pneumonia", "Пневмония (воспаление лёгких)"],
+      ["Pneumothorax", "Пневмоторакс", "Pneumothorax", "Пневмоторакс"],
+      ["Rozedma plic", "Емфізема легень", "Emphysema", "Эмфизема лёгких"]
+    ]},
+    { n: ["Nemoci trávicí soustavy", "Хвороби органів травлення", "Digestive diseases", "Болезни органов пищеварения"], d: [
+      ["Akutní apendicitis / zánět slepého střeva", "Гострий апендицит", "Acute appendicitis", "Острый аппендицит"],
+      ["Celiakie (nesnášenlivost lepku)", "Целіакія (непереносимість глютену)", "Coeliac disease (gluten intolerance)", "Целиакия (непереносимость глютена)"],
+      ["Cirhóza jater", "Цироз печінки", "Liver cirrhosis", "Цирроз печени"],
+      ["Crohnova choroba", "Хвороба Крона", "Crohn's disease", "Болезнь Крона"],
+      ["Dvanácterníkový vřed", "Виразка дванадцятипалої кишки", "Duodenal ulcer", "Язва двенадцатиперстной кишки"],
+      ["Dyspepsie (porucha trávení)", "Диспепсія (розлад травлення)", "Dyspepsia (indigestion)", "Диспепсия (расстройство пищеварения)"],
+      ["Hemoroidy", "Геморой", "Haemorrhoids", "Геморрой"],
+      ["Ileus (neprůchodnost střev)", "Кишкова непрохідність", "Ileus (bowel obstruction)", "Кишечная непроходимость"],
+      ["Kýla - brániční kýla", "Грижа – діафрагмальна", "Hernia – diaphragmatic", "Грыжа – диафрагмальная"],
+      ["Kýla - hiátová kýla", "Грижа – стравохідного отвору діафрагми", "Hernia – hiatal", "Грыжа – пищеводного отверстия диафрагмы"],
+      ["Kýla - kýla v jizvě", "Грижа – післяопераційна (у рубці)", "Hernia – incisional", "Грыжа – послеоперационная (в рубце)"],
+      ["Kýla - pupeční kýla", "Грижа – пупкова", "Hernia – umbilical", "Грыжа – пупочная"],
+      ["Kýla - tříselná kýla", "Грижа – пахова", "Hernia – inguinal", "Грыжа – паховая"],
+      ["Nemoci jícnu", "Хвороби стравоходу", "Oesophageal diseases", "Болезни пищевода"],
+      ["Gastroezofageální (jícnový) reflux", "Гастроезофагеальний рефлюкс", "Gastro-oesophageal reflux", "Гастроэзофагеальный рефлюкс"],
+      ["Ulcerozní kolitida a jiné záněty střev", "Виразковий коліт та інші запалення кишечника", "Ulcerative colitis and other bowel inflammation", "Язвенный колит и другие воспаления кишечника"],
+      ["Žaludeční vřed", "Виразка шлунка", "Stomach ulcer", "Язва желудка"],
+      ["Zánět pobřišnice", "Перитоніт", "Peritonitis", "Перитонит"],
+      ["Zánět slinivky břišní", "Панкреатит (запалення підшлункової залози)", "Pancreatitis", "Панкреатит (воспаление поджелудочной железы)"],
+      ["Zánět žlučníku", "Холецистит (запалення жовчного міхура)", "Cholecystitis (gallbladder inflammation)", "Холецистит (воспаление желчного пузыря)"],
+      ["Záněty žaludku", "Гастрит", "Gastritis", "Гастрит"],
+      ["Žlučníkové kameny", "Камені в жовчному міхурі", "Gallstones", "Камни в желчном пузыре"]
+    ]},
+    { n: ["Nemoci kůže a podkožního vaziva", "Хвороби шкіри та підшкірної клітковини", "Skin and subcutaneous tissue diseases", "Болезни кожи и подкожной клетчатки"], d: [
+      ["Absces kůže", "Абсцес шкіри", "Skin abscess", "Абсцесс кожи"],
+      ["Dermatitida a ekzém", "Дерматит і екзема", "Dermatitis and eczema", "Дерматит и экзема"],
+      ["Kopřivka a erytém", "Кропив'янка та еритема", "Hives (urticaria) and erythema", "Крапивница и эритема"],
+      ["Kožní lupus erythematodes", "Шкірний червоний вовчак", "Cutaneous lupus erythematosus", "Кожная красная волчанка"],
+      ["Lupénka kožní (psoriasis)", "Псоріаз", "Psoriasis", "Псориаз"],
+      ["Zánět mízních uzlin", "Запалення лімфатичних вузлів", "Inflamed lymph nodes (lymphadenitis)", "Воспаление лимфатических узлов"]
+    ]},
+    { n: ["Nemoci močové a pohlavní soustavy", "Хвороби сечостатевої системи", "Genitourinary diseases", "Болезни мочеполовой системы"], d: [
+      ["Cysty pohlavních ženských orgánů", "Кісти жіночих статевих органів", "Cysts of the female reproductive organs", "Кисты женских половых органов"],
+      ["Dysplazie/nemoci děložního hrdla CIN 1", "Дисплазія/хвороби шийки матки CIN 1", "Cervical dysplasia/disease CIN 1", "Дисплазия/болезни шейки матки CIN 1"],
+      ["Dysplazie/nemoci děložního hrdla CIN 2, dysplazie/nemoci děložního hrdla CIN 3", "Дисплазія/хвороби шийки матки CIN 2, CIN 3", "Cervical dysplasia/disease CIN 2, CIN 3", "Дисплазия/болезни шейки матки CIN 2, CIN 3"],
+      ["Endometrióza", "Ендометріоз", "Endometriosis", "Эндометриоз"],
+      ["Hematurie/krev v moči", "Гематурія/кров у сечі", "Haematuria/blood in urine", "Гематурия/кровь в моче"],
+      ["Hydronefróza", "Гідронефроз", "Hydronephrosis", "Гидронефроз"],
+      ["Kámen ledviny/močových cest", "Камені в нирках/сечовивідних шляхах", "Kidney/urinary tract stones", "Камни в почках/мочевыводящих путях"],
+      ["Komplikace spojené s umělým oplodněním", "Ускладнення, пов'язані зі штучним заплідненням", "Complications related to IVF", "Осложнения, связанные с искусственным оплодотворением"],
+      ["Neplodnost", "Безпліддя", "Infertility", "Бесплодие"],
+      ["Polycystické vaječníky", "Полікістоз яєчників", "Polycystic ovaries", "Поликистоз яичников"],
+      ["Polypy pohlavních ženských orgánů", "Поліпи жіночих статевих органів", "Polyps of the female reproductive organs", "Полипы женских половых органов"],
+      ["Proteinurie/bílkovina v moči", "Протеїнурія/білок у сечі", "Proteinuria/protein in urine", "Протеинурия/белок в моче"],
+      ["Selhání ledvin", "Ниркова недостатність", "Kidney failure", "Почечная недостаточность"],
+      ["Zánět ledvin akutní", "Гостре запалення нирок", "Acute nephritis", "Острое воспаление почек"],
+      ["Zánět ledvin chronický / ledvinová nedostatečnost", "Хронічне запалення нирок / ниркова недостатність", "Chronic nephritis / renal insufficiency", "Хроническое воспаление почек / почечная недостаточность"],
+      ["Zánět pohlavních orgánů a prsu", "Запалення статевих органів і молочної залози", "Inflammation of the reproductive organs and breast", "Воспаление половых органов и молочной железы"],
+      ["Zbytnění prostaty", "Збільшення (гіперплазія) простати", "Enlarged prostate", "Увеличение (гиперплазия) простаты"],
+      ["Zánět močového měchýře akutní", "Гострий цистит", "Acute cystitis", "Острый цистит"],
+      ["Zánět močového měchýře chronický", "Хронічний цистит", "Chronic cystitis", "Хронический цистит"]
+    ]},
+    { n: ["Komplikace v těhotenství", "Ускладнення вагітності", "Pregnancy complications", "Осложнения беременности"], d: [
+      ["Těhotenský diabetes mellitus (těhotenská cukrovka)", "Гестаційний цукровий діабет", "Gestational diabetes", "Гестационный сахарный диабет"],
+      ["Eklampsie/křeče", "Еклампсія/судоми", "Eclampsia/seizures", "Эклампсия/судороги"],
+      ["Hypertenze (vysoký tlak) vyvolaný těhotenstvím", "Гіпертензія, спричинена вагітністю", "Pregnancy-induced hypertension", "Гипертензия, вызванная беременностью"],
+      ["Onemocnění matky v souvislosti s těhotenstvím", "Захворювання матері, пов'язане з вагітністю", "Maternal illness related to pregnancy", "Заболевание матери, связанное с беременностью"],
+      ["Porod komplikovaný poruchou srážlivosti", "Пологи, ускладнені порушенням згортання крові", "Childbirth complicated by a clotting disorder", "Роды, осложнённые нарушением свёртываемости крови"],
+      ["Potrat/neúplný potrat", "Викидень/неповний викидень", "Miscarriage/incomplete miscarriage", "Выкидыш/неполный выкидыш"],
+      ["Rizikové těhotenství z důvodu ohrožení plodu", "Вагітність високого ризику через загрозу для плода", "High-risk pregnancy due to risk to the foetus", "Беременность высокого риска из-за угрозы для плода"]
+    ]},
+    { n: ["Jiná", "Інше", "Other", "Другое"], d: [
+      ["Jiná onemocnění", "Інше захворювання", "Other illness", "Другое заболевание"]
+    ]},
+    { n: ["Zhoubné nádory", "Злоякісні пухлини", "Malignant tumours", "Злокачественные опухоли"], d: ORGANS.map(o => join(o, MALIG)) },
+    { n: ["Nezhoubné nádory", "Доброякісні пухлини", "Benign tumours", "Доброкачественные опухоли"], d: ORGANS.filter(o => o[0] !== "Krev").map(o => join(o, BENIGN)) },
+    { n: ["Nemoci krve a imunity", "Хвороби крові та імунітету", "Blood and immune system diseases", "Болезни крови и иммунитета"], d: [
+      ["Anémie (chudokrevnost)", "Анемія (недокрів'я)", "Anaemia", "Анемия (малокровие)"],
+      ["Krční mandle", "Піднебінні мигдалики", "Tonsils", "Нёбные миндалины"],
+      ["Krvácivé stavy", "Схильність до кровотеч", "Bleeding conditions", "Склонность к кровотечениям"],
+      ["Nemoci sleziny", "Хвороби селезінки", "Spleen diseases", "Болезни селезёнки"],
+      ["Nosní mandle", "Аденоїди", "Adenoids", "Аденоиды"],
+      ["Poruchy a aplázie krvinek", "Порушення та аплазія клітин крові", "Blood cell disorders and aplasia", "Нарушения и аплазия клеток крови"],
+      ["Poruchy imunity", "Порушення імунітету", "Immune disorders", "Нарушения иммунитета"],
+      ["Poruchy srážlivosti krve/krvácivé stavy", "Порушення згортання крові/схильність до кровотеч", "Blood clotting disorders/bleeding conditions", "Нарушения свёртываемости крови/склонность к кровотечениям"],
+      ["Talasemie", "Таласемія", "Thalassaemia", "Талассемия"],
+      ["Trombocytopenie", "Тромбоцитопенія", "Thrombocytopenia", "Тромбоцитопения"]
+    ]},
+    { n: ["Nemoci endokrinní a metabolismu", "Ендокринні хвороби та порушення обміну речовин", "Endocrine and metabolic diseases", "Эндокринные болезни и нарушения обмена веществ"], d: [
+      ["Cystická fibróza", "Муковісцидоз (кістозний фіброз)", "Cystic fibrosis", "Муковисцидоз (кистозный фиброз)"],
+      ["Diabetes mellitus (cukrovka) 1. typu", "Цукровий діабет 1 типу", "Type 1 diabetes", "Сахарный диабет 1 типа"],
+      ["Diabetes mellitus (cukrovka) 2. typu", "Цукровий діабет 2 типу", "Type 2 diabetes", "Сахарный диабет 2 типа"],
+      ["Dna, hyperurikémie", "Подагра, гіперурикемія", "Gout, hyperuricaemia", "Подагра, гиперурикемия"],
+      ["Hyperfunkce (zvýšená funkce) štítné žlázy", "Гіперфункція щитоподібної залози", "Overactive thyroid (hyperthyroidism)", "Гиперфункция щитовидной железы"],
+      ["Hypofunkce (snížená funkce) štítné žlázy", "Гіпофункція щитоподібної залози", "Underactive thyroid (hypothyroidism)", "Гипофункция щитовидной железы"],
+      ["Porucha funkce hypofýzy", "Порушення функції гіпофіза", "Pituitary disorder", "Нарушение функции гипофиза"],
+      ["Poruchy přeměny látek - metabolismu", "Порушення обміну речовин (метаболізму)", "Metabolic disorders", "Нарушения обмена веществ (метаболизма)"],
+      ["Poruchy regulace glukózy a vnitřní sekrece slinivky břišní", "Порушення регуляції глюкози та внутрішньої секреції підшлункової залози", "Glucose regulation and pancreatic endocrine disorders", "Нарушения регуляции глюкозы и внутренней секреции поджелудочной железы"],
+      ["Zvýšená / vysoká hladina cholesterolu", "Підвищений / високий рівень холестерину", "Raised / high cholesterol", "Повышенный / высокий уровень холестерина"]
+    ]},
+    { n: ["Poruchy duševní a poruchy chování", "Психічні розлади та розлади поведінки", "Mental and behavioural disorders", "Психические расстройства и расстройства поведения"], d: [
+      ["Bipolární porucha", "Біполярний розлад", "Bipolar disorder", "Биполярное расстройство"],
+      ["Deprese", "Депресія", "Depression", "Депрессия"],
+      ["Fobie", "Фобії", "Phobias", "Фобии"],
+      ["Hyperaktivita/porucha pozornosti", "Гіперактивність/розлад уваги (СДУГ)", "ADHD (hyperactivity/attention disorder)", "Гиперактивность/расстройство внимания (СДВГ)"],
+      ["Mentální anorexie/bulimie", "Нервова анорексія/булімія", "Anorexia nervosa/bulimia", "Нервная анорексия/булимия"],
+      ["Mentální retardace", "Розумова відсталість", "Intellectual disability", "Умственная отсталость"],
+      ["Panická porucha", "Панічний розлад", "Panic disorder", "Паническое расстройство"],
+      ["Poruchy psychického vývoje", "Порушення психологічного розвитку", "Disorders of psychological development", "Нарушения психологического развития"],
+      ["Reakce na stres", "Реакція на стрес", "Stress reaction", "Реакция на стресс"],
+      ["Schizofrenie", "Шизофренія", "Schizophrenia", "Шизофрения"],
+      ["Úzkostné poruchy, afektivní poruchy (poruchy nálad)", "Тривожні розлади, афективні розлади (розлади настрою)", "Anxiety disorders, affective (mood) disorders", "Тревожные расстройства, аффективные расстройства (расстройства настроения)"]
+    ]},
+    { n: ["Nemoci nervové", "Хвороби нервової системи", "Nervous system diseases", "Болезни нервной системы"], d: [
+      ["Alzheimer", "Хвороба Альцгеймера", "Alzheimer's disease", "Болезнь Альцгеймера"],
+      ["Epilepsie", "Епілепсія", "Epilepsy", "Эпилепсия"],
+      ["Migrény (chronické bolesti hlavy)", "Мігрень (хронічний головний біль)", "Migraines (chronic headaches)", "Мигрень (хронические головные боли)"],
+      ["Neuropatie a polyneuropatie", "Нейропатія та полінейропатія", "Neuropathy and polyneuropathy", "Нейропатия и полинейропатия"],
+      ["Parkinsonova nemoc/parkinsonismus", "Хвороба Паркінсона/паркінсонізм", "Parkinson's disease/parkinsonism", "Болезнь Паркинсона/паркинсонизм"],
+      ["Roztroušená skleróza", "Розсіяний склероз", "Multiple sclerosis", "Рассеянный склероз"],
+      ["Zánět mozku/mozkových blan", "Запалення головного мозку/мозкових оболонок", "Encephalitis/meningitis", "Воспаление головного мозга/мозговых оболочек"]
+    ]},
+    { n: ["Nemoci svalové, kosterní tkáně a pojivové tkáně", "Хвороби кістково-м'язової системи та сполучної тканини", "Musculoskeletal and connective tissue diseases", "Болезни костно-мышечной системы и соединительной ткани"], d: [
+      ["Artritidy (zánětlivé onemocnění kloubů)", "Артрити (запальні захворювання суглобів)", "Arthritis (inflammatory joint disease)", "Артриты (воспалительные заболевания суставов)"],
+      ["Artropatie / nezánětlivé onemocnění kloubu", "Артропатія / незапальне захворювання суглоба", "Arthropathy / non-inflammatory joint disease", "Артропатия / невоспалительное заболевание сустава"],
+      ["Artropatie při lupénce", "Псоріатична артропатія", "Psoriatic arthropathy", "Псориатическая артропатия"],
+      ["Bechtěrevova choroba", "Хвороба Бехтерева", "Ankylosing spondylitis (Bechterew's disease)", "Болезнь Бехтерева"],
+      ["Dorzalgie, dorzopatie (bolesti zad, ústřel)", "Дорсалгія, дорсопатія (біль у спині, прострел)", "Back pain, dorsopathy (lumbago)", "Дорсалгия, дорсопатия (боли в спине, прострел)"],
+      ["Osteoporoza", "Остеопороз", "Osteoporosis", "Остеопороз"],
+      ["Revmatické artritidy", "Ревматоїдні артрити", "Rheumatoid arthritis", "Ревматоидные артриты"],
+      ["Revmatická onemocnění", "Ревматичні захворювання", "Rheumatic diseases", "Ревматические заболевания"],
+      ["Skolióza", "Сколіоз", "Scoliosis", "Сколиоз"],
+      ["Spondylóza, spondylopatie", "Спондильоз, спондилопатія", "Spondylosis, spondylopathy", "Спондилёз, спондилопатия"],
+      ["Syndrom karpálního tunelu/zánět šlach", "Синдром зап'ясткового каналу/запалення сухожиль", "Carpal tunnel syndrome/tendinitis", "Синдром запястного канала/воспаление сухожилий"],
+      ["Systémový lupus erythematodes", "Системний червоний вовчак", "Systemic lupus erythematosus", "Системная красная волчанка"],
+      ["Tenisový loket - pravá horní končetina", "Тенісний лікоть – права рука", "Tennis elbow – right arm", "Теннисный локоть – правая рука"],
+      ["Tenisový loket - levá horní končetina", "Тенісний лікоть – ліва рука", "Tennis elbow – left arm", "Теннисный локоть – левая рука"],
+      ["Výhřez meziobratlové ploténky", "Грижа міжхребцевого диска", "Herniated disc", "Грыжа межпозвоночного диска"],
+      ["Artropatie při ulcerózní kolitidě a Crohnově chorobě", "Артропатія при виразковому коліті та хворобі Крона", "Arthropathy in ulcerative colitis and Crohn's disease", "Артропатия при язвенном колите и болезни Крона"],
+      ["Polyartrózy (více kloubů)", "Поліартроз (кілька суглобів)", "Polyarthrosis (several joints)", "Полиартроз (несколько суставов)"],
+      ...JOINTS.flat().map(f => f.map((x, i) => ARTH[i] + x))
+    ]},
+    { n: ["Nemoci oka", "Хвороби очей", "Eye diseases", "Болезни глаз"], d: [
+      ..."ABCDEFGHI".split("").map(k => join(EYE[k], EYES.both)),
+      ..."CFEGHABDI".split("").map(k => join(EYE[k], EYES.R)),
+      ..."CFEGHABDI".split("").map(k => join(EYE[k], EYES.L))
+    ]},
+    { n: ["Nemoci ucha", "Хвороби вух", "Ear diseases", "Болезни ушей"], d: [
+      ..."HMPTZV".split("").map(k => join(EAR[k], EARS.both)),
+      ..."TPHVZM".split("").map(k => join(EAR[k], EARS.R)),
+      ..."TPHVZM".split("").map(k => join(EAR[k], EARS.L))
+    ]}
+  ];
+})();
+const OTHER_ID = "7-0";
+
+/* ================= Translations ================= */
+const T = {
+  cs: {
+    title: "Zdravotní dotazník",
+    s1: "Osobní údaje", firstName: "Jméno", lastName: "Příjmení", birth: "Datum narození",
+    s2: "Výška a váha", height: "Výška (cm)", weight: "Váha (kg)",
+    s3: "Kouření", smokeQ: "Kouříte, nebo jste v minulosti kouřil?",
+    yes: "Ano", no: "Ne", status: "Aktuální stav",
+    smokeNow: "Kouřím stále", smokeQuit: "S kouřením jsem již přestal",
+    smokeStartQ: "V kolika letech jste začal s kouřením?",
+    smokeStopQ: "V kolika letech jste přestal s kouřením?",
+    fromYear: "Od roku", toYear: "Do roku", yearPh: "RRRR", month: "Měsíc",
+    cigsNow: "Kolik cigaret denně vykouříte?",
+    cigsBefore: "Kolik cigaret denně jste vykouřil předtím, než jste přestal?",
+    cig: ["do 5 kusů", "do 10 kusů", "do 15 kusů", "do 20 kusů", "do 25 kusů", "nad 25 kusů"],
+    s4: "Závislosti a jejich léčba",
+    addDesc: "Jste nebo byl jste závislý na alkoholu, hráčství, případně vám byla v této souvislosti doporučena léčba? Užíval jste nebo užíváte drogy?",
+    addictionN: "Závislost", addAddiction: "Přidat další závislost",
+    addWhich: "O jakou závislost se jedná?", addType: "Druh závislosti",
+    chipAlcohol: "Alkohol", chipDrugs: "Drogy, návykové látky", chipGambling: "Gamblerství, hráčství", chipMeds: "Léky",
+    addStill: "Závislost stále trvá", addPeriod: "Závislost trvala pouze v období",
+    addStartQ: "V kolika letech jste se stal závislý?",
+    addStopQ: "V kolika letech jste přestal být závislý?",
+    s5: "Vrozené vady", s5desc: "Máte nebo měl jste dříve nějakou vrozenou vadu?",
+    defectN: "Vrozená vada", addDefect: "Přidat další vrozenou vadu",
+    defectDesc: "Popis vrozené vady a případné léčby",
+    s6: "Nemoci, zdravotní potíže, zákroky nebo léčba",
+    s6desc: "Máte nebo měl jste v průběhu vašeho života onemocnění nebo zdravotní potíže? Podstoupil jste nebo plánujete podstoupit zákrok či léčbu?",
+    exTitle: "Seznam nemocí, které není nutné uvádět, pokud doba léčení nepřekročila 21 dní a byla ukončená:",
+    ex1: "Akutní infekce horních cest dýchacích (akutní zánět krčních – angína a nosních mandlí, nosohltanu, hltanu, hrtanu)",
+    ex2: "Chřipka, pneumonie – zápal plic, stafylokoková a streptokoková infekce",
+    ex3: "Černý kašel, běžná dětská onemocnění prodělaná v dětském věku (plané neštovice, zarděnky, spalničky, příušnice, spála, pátá a šestá nemoc)",
+    ex4: "Porod, porod císařským řezem, akutní zánět slepého střeva včetně provedené operace bez komplikací a následků, akutní střevní infekce",
+    ex5: "Alergie, alergická rýma, potravinová intolerance, pokud jsou tato onemocnění bez komplikací, bez pravidelného užívání léků a hospitalizace.",
+    infoText: "Vybírejte diagnózu ze seznamu onemocnění. Možnost „jiná“ vyplňte pouze v případě, kdy dané onemocnění v seznamu není. Pokud je vybráno „jiná“, nemůže dojít k posouzení zdravotního stavu online. Pole „Bližší specifikace onemocnění“ vyplňujte pouze v případě, kdy je nutné doplnit důležitou informaci, která není zodpovězena v podotázkách k danému onemocnění.",
+    illnessN: "Onemocnění", addIllness: "Přidat další onemocnění",
+    illWhich: "O jaké onemocnění se jedná?", illType: "Druh onemocnění", acPh: "Začněte psát nebo vyberte ze seznamu", acEmpty: "Nic nenalezeno. Pokud onemocnění v seznamu není, vyberte „Jiná onemocnění“.",
+    specify: "Bližší specifikace onemocnění",
+    optPeriod: "V období", optOngoing: "Stále trvá", optChild: "V dětství", opt10: "Před více než 10 lety",
+    qRepeat: "Vyskytlo se u vás uvedené onemocnění opakovaně?",
+    firstOcc: "První výskyt onemocnění (nejstarší)",
+    qMeds: "Užíváte / užíval jste v souvislosti s tímto onemocněním léky?",
+    drugN: "Lék", addDrug: "Přidat další lék", drugName: "Název léku", drugUnknown: "Nepamatuji si název léku",
+    drugFreqQ: "Jak často lék užíváte?",
+    fPeriod: "V zadaném období", fStill: "Stále užívám", fDontRemember: "Nepamatuji se", fWhenNeeded: "Při potížích",
+    qMonitored: "Jste v souvislosti s tímto onemocněním pravidelně sledován?",
+    doctorN: "Uveďte ošetřujícího lékaře", addDoctor: "Přidat dalšího lékaře",
+    facility: "Zdravotnické zařízení", town: "Obec – část obce", street: "Ulice, číslo popisné", zip: "PSČ",
+    freq: "Frekvence", selectPh: "Vyberte",
+    fqWeekly: "týdně", fqMonthly: "měsíčně", fqQuarterly: "čtvrtletně", fqHalf: "půlročně", fqYearly: "ročně", fqOther: "jinak",
+    qExam: "Proběhlo u vás v posledních 10 letech v souvislosti s tímto onemocněním odborné lékařské vyšetření, je plánováno nebo doporučeno?",
+    examN: "Vyšetření", addExam: "Přidat další vyšetření", examType: "Typ vyšetření",
+    stEnded: "Ukončeno", stDone: "Dokončeno", stPlanned: "Plánováno", stRecommended: "Doporučeno",
+    inYear: "V roce", reason: "Důvod",
+    qSick: "Jste / byl jste v posledních 3 letech v souvislosti s tímto onemocněním v pracovní neschopnosti delší než 3 týdny?",
+    sickN: "Pracovní neschopnost", addSick: "Přidat další neschopnost",
+    fromYM: "Od roku a měsíce", toYM: "Do roku a měsíce",
+    qPension: "Žádáte / žádal jste nebo pobíráte / pobíral jste v souvislosti s tímto onemocněním invalidní důchod?",
+    degree: "Stupeň", deg1: "I. stupeň", deg2: "II. stupeň", deg3: "III. stupeň", degNone: "Nebylo rozhodnuto",
+    pReceived: "Pobíral jsem", pReceiving: "Stále pobírám", pApplying: "Žádám", pApplied: "Žádal jsem",
+    qHosp: "Byl jste v posledních 10 letech s tímto onemocněním hospitalizován, je hospitalizace plánovaná nebo doporučena?",
+    hospN: "Hospitalizace", addHosp: "Přidat další hospitalizaci", hospType: "Typ hospitalizace",
+    qOp: "Byl jste v souvislosti s tímto onemocněním operován, je operace plánovaná nebo doporučena?",
+    opN: "Operace", addOp: "Přidat další operaci", opType: "Operace",
+    setNoText: "Nastavit odpověď na všechny otázky na „NE“",
+    setNoBtn: "Nastavit u všech „NE“",
+    s7: "Úraz",
+    s7desc: "Utrpěl jste někdy úraz, který zanechal trvalé následky? Utrpěl jste v posledních 5 letech úraz, který nezanechal trvalé následky?",
+    addInjMinor: "Přidat úraz bez trvalých následků",
+    addInjPerm: "Přidat úraz s trvalými následky",
+    injuryN: "Úraz",
+    tagMinor: "bez trvalých následků",
+    tagPerm: "s trvalými následky",
+    injType: "Typ úrazu",
+    injWhenQ: "Kdy se úraz stal?",
+    injRepeated: "Úraz se stal opakovaně",
+    injInYear: "Úraz se stal v roce",
+    lastInj: "Poslední úraz",
+    firstInj: "První úraz (nejstarší)",
+    permType: "Vyberte typ trvalých následků",
+    permMove: "omezení pohybu",
+    permSwell: "otoky / bolesti",
+    permOther: "jiné",
+    permSpecify: "Specifikujte trvalé následky",
+    injPermWhenQ: "Kdy se úraz s trvalými následky stal?",
+    qiMeds: "Užíváte / užíval jste v souvislosti s tímto úrazem léky?",
+    qiMon: "Jste v souvislosti s tímto úrazem pravidelně sledován?",
+    qiExam: "Proběhlo u vás v posledních 5 letech v souvislosti s tímto úrazem odborné lékařské vyšetření, je plánováno nebo doporučeno?",
+    qiSick: "Jste v současné době v pracovní neschopnosti / byl jste v posledních 3 letech v souvislosti s tímto úrazem v pracovní neschopnosti déle než 3 týdny?",
+    qiPension: "Žádáte / žádal jste, pobíráte / pobíral jste v souvislosti s tímto úrazem invalidní důchod?",
+    qiHosp: "Byl jste v posledních 5 letech s tímto úrazem hospitalizován, je hospitalizace plánována nebo doporučena?",
+    qiOp: "Byl jste v souvislosti s tímto úrazem operován, je operace plánovaná nebo doporučena?",
+    s8: "Praktický lékař",
+    s8desc: "Uveďte ošetřujícího praktického lékaře (lékař musí být na území ČR).",
+    street1: "Ulice",
+    numPop: "Číslo popisné",
+    numOr: "Číslo orientační",
+    dlgText: "V dotazníku zůstala nevyplněná povinná pole. Chcete pokračovat v úpravách?",
+    dlgContinue: "Pokračovat v úpravách",
+    dlgDownload: "Stáhnout PDF s neúplnými údaji",
+    loadText: "Načíst a upravit existující dotazník",
+    loadBtn: "Nahrát PDF",
+    loading: "Načítám…",
+    loadOk: "Dotazník byl načten. Můžete pokračovat v úpravách.",
+    loadFail: "V tomto souboru nebyla nalezena data dotazníku. Nahrajte PDF, které bylo uloženo z tohoto formuláře.",
+    loadLibFail: "Nepodařilo se načíst nástroj pro čtení PDF. Zkontrolujte připojení k internetu.",
+    loadMismatch: "Soubor pochází z jiné verze dotazníku a nelze ho načíst.",
+    pdfDataNote: "Technická data pro opětovné načtení dotazníku. Neupravujte je.",
+    injHint: "Např. zlomenina nohy, otřes mozku, amputace ruky apod.",
+    resetBtn: "Vymazat formulář",
+    resetText: "Opravdu chcete vymazat formulář a začít vyplňovat znovu?",
+    plWhen: "Kdy",
+    filledOn: "Vyplněno",
+    del: "Smazat",
+    notSet: "nevybráno", linked: "věk a rok jsou propojené",
+    needBirth: "Vyplňte datum narození v osobních údajích a rok se dopočítá sám.",
+    outOfRange: "Tomuto roku odpovídá věk {age}, což je mimo rozsah 18–50.",
+    orderErr: "Rok ukončení je dříve než rok začátku.",
+    futureErr: "Rok nemůže být v budoucnosti.",
+    required: "Toto pole je povinné.",
+    reqSummary: "Vyplňte prosím povinná pole označená červeně.",
+    savePdf: "Uložit do PDF",
+    pdfHint: "V okně tisku zvolte „Uložit jako PDF“."
+  },
+  uk: {
+    title: "Медична анкета",
+    s1: "Особисті дані", firstName: "Ім'я", lastName: "Прізвище", birth: "Дата народження",
+    s2: "Зріст і вага", height: "Зріст (см)", weight: "Вага (кг)",
+    s3: "Куріння", smokeQ: "Ви курите або курили раніше?",
+    yes: "Так", no: "Ні", status: "Поточний стан",
+    smokeNow: "Я курю досі", smokeQuit: "Я вже кинув(-ла) курити",
+    smokeStartQ: "У якому віці ви почали курити?",
+    smokeStopQ: "У якому віці ви кинули курити?",
+    fromYear: "З року", toYear: "До року", yearPh: "РРРР", month: "Місяць",
+    cigsNow: "Скільки сигарет на день ви викурюєте?",
+    cigsBefore: "Скільки сигарет на день ви викурювали до того, як кинули?",
+    cig: ["до 5 штук", "до 10 штук", "до 15 штук", "до 20 штук", "до 25 штук", "понад 25 штук"],
+    s4: "Залежності та їх лікування",
+    addDesc: "Чи є або чи була у вас залежність від алкоголю чи азартних ігор, або чи рекомендували вам у зв'язку з цим лікування? Чи вживали або вживаєте ви наркотики?",
+    addictionN: "Залежність", addAddiction: "Додати ще одну залежність",
+    addWhich: "Про яку залежність ідеться?", addType: "Вид залежності",
+    chipAlcohol: "Алкоголь", chipDrugs: "Наркотики, психоактивні речовини", chipGambling: "Азартні ігри", chipMeds: "Ліки",
+    addStill: "Залежність триває досі", addPeriod: "Залежність тривала лише певний період",
+    addStartQ: "У якому віці у вас виникла залежність?",
+    addStopQ: "У якому віці ви позбулися залежності?",
+    s5: "Вроджені вади", s5desc: "Чи маєте ви або чи мали раніше якусь вроджену ваду?",
+    defectN: "Вроджена вада", addDefect: "Додати ще одну вроджену ваду",
+    defectDesc: "Опис вродженої вади та можливого лікування",
+    s6: "Хвороби, проблеми зі здоров'ям, втручання або лікування",
+    s6desc: "Чи маєте ви або чи мали протягом життя захворювання чи проблеми зі здоров'ям? Чи проходили ви або чи плануєте пройти медичне втручання чи лікування?",
+    exTitle: "Хвороби, які не потрібно вказувати, якщо лікування тривало не більше 21 дня і було завершене:",
+    ex1: "Гострі інфекції верхніх дихальних шляхів (гостре запалення піднебінних мигдаликів – ангіна, аденоїдів, носоглотки, глотки, гортані)",
+    ex2: "Грип, пневмонія (запалення легень), стафілококова та стрептококова інфекція",
+    ex3: "Кашлюк, звичайні дитячі хвороби, перенесені в дитинстві (вітряна віспа, краснуха, кір, свинка, скарлатина, п'ята і шоста хвороба)",
+    ex4: "Пологи, кесарів розтин, гострий апендицит, зокрема з операцією без ускладнень і наслідків, гостра кишкова інфекція",
+    ex5: "Алергія, алергічний риніт, харчова непереносимість, якщо ці захворювання перебігають без ускладнень, без регулярного прийому ліків і госпіталізації.",
+    infoText: "Вибирайте діагноз зі списку захворювань. Варіант «інше» обирайте лише тоді, коли захворювання немає в списку. Якщо вибрано «інше», стан здоров'я не можна оцінити онлайн. Поле «Уточнення захворювання» заповнюйте лише тоді, коли потрібно додати важливу інформацію, якої немає у відповідях на додаткові запитання щодо цього захворювання.",
+    illnessN: "Захворювання", addIllness: "Додати ще одне захворювання",
+    illWhich: "Про яке захворювання йдеться?", illType: "Вид захворювання", acPh: "Почніть вводити або виберіть зі списку", acEmpty: "Нічого не знайдено. Якщо захворювання немає в списку, виберіть «Інше захворювання».",
+    specify: "Уточнення захворювання",
+    optPeriod: "У певний період", optOngoing: "Триває досі", optChild: "У дитинстві", opt10: "Понад 10 років тому",
+    qRepeat: "Чи виникало у вас це захворювання повторно?",
+    firstOcc: "Перший випадок захворювання (найдавніший)",
+    qMeds: "Чи приймаєте / приймали ви ліки у зв'язку з цим захворюванням?",
+    drugN: "Препарат", addDrug: "Додати ще один препарат", drugName: "Назва препарату", drugUnknown: "Не пам'ятаю назву препарату",
+    drugFreqQ: "Як часто ви приймаєте препарат?",
+    fPeriod: "У певний період", fStill: "Приймаю досі", fDontRemember: "Не пам'ятаю", fWhenNeeded: "За потреби",
+    qMonitored: "Чи перебуваєте ви під регулярним наглядом лікаря у зв'язку з цим захворюванням?",
+    doctorN: "Лікуючий лікар", addDoctor: "Додати ще одного лікаря",
+    facility: "Медичний заклад", town: "Населений пункт, район", street: "Вулиця, номер будинку", zip: "Поштовий індекс",
+    freq: "Частота", selectPh: "Виберіть",
+    fqWeekly: "щотижня", fqMonthly: "щомісяця", fqQuarterly: "щокварталу", fqHalf: "раз на пів року", fqYearly: "щороку", fqOther: "інакше",
+    qExam: "Чи проходили ви за останні 10 років у зв'язку з цим захворюванням спеціалізоване медичне обстеження, або чи воно заплановане чи рекомендоване?",
+    examN: "Обстеження", addExam: "Додати ще одне обстеження", examType: "Тип обстеження",
+    stEnded: "Завершено", stDone: "Завершено", stPlanned: "Заплановано", stRecommended: "Рекомендовано",
+    inYear: "Рік", reason: "Причина",
+    qSick: "Чи перебуваєте / перебували ви за останні 3 роки на лікарняному у зв'язку з цим захворюванням довше ніж 3 тижні?",
+    sickN: "Лікарняний", addSick: "Додати ще один лікарняний",
+    fromYM: "З (рік і місяць)", toYM: "До (рік і місяць)",
+    qPension: "Чи подаєте / подавали ви заяву на пенсію по інвалідності або чи отримуєте / отримували її у зв'язку з цим захворюванням?",
+    degree: "Ступінь", deg1: "I ступінь", deg2: "II ступінь", deg3: "III ступінь", degNone: "Рішення ще не ухвалено",
+    pReceived: "Отримував(-ла)", pReceiving: "Отримую досі", pApplying: "Подаю заяву", pApplied: "Подавав(-ла) заяву",
+    qHosp: "Чи були ви за останні 10 років госпіталізовані з цим захворюванням, або чи госпіталізація запланована чи рекомендована?",
+    hospN: "Госпіталізація", addHosp: "Додати ще одну госпіталізацію", hospType: "Тип госпіталізації",
+    qOp: "Чи були ви прооперовані у зв'язку з цим захворюванням, або чи операція запланована чи рекомендована?",
+    opN: "Операція", addOp: "Додати ще одну операцію", opType: "Операція",
+    setNoText: "Відповісти «Ні» на всі запитання вище",
+    setNoBtn: "Усюди «Ні»",
+    s7: "Травми",
+    s7desc: "Чи отримували ви коли-небудь травму, яка залишила стійкі наслідки? Чи отримували ви за останні 5 років травму, яка не залишила стійких наслідків?",
+    addInjMinor: "Додати травму без стійких наслідків",
+    addInjPerm: "Додати травму зі стійкими наслідками",
+    injuryN: "Травма",
+    tagMinor: "без стійких наслідків",
+    tagPerm: "зі стійкими наслідками",
+    injType: "Тип травми",
+    injWhenQ: "Коли сталася травма?",
+    injRepeated: "Травма повторювалася",
+    injInYear: "Травма сталася в певному році",
+    lastInj: "Остання травма",
+    firstInj: "Перша травма (найдавніша)",
+    permType: "Виберіть тип стійких наслідків",
+    permMove: "обмеження рухливості",
+    permSwell: "набряки / біль",
+    permOther: "інше",
+    permSpecify: "Уточніть стійкі наслідки",
+    injPermWhenQ: "Коли сталася травма зі стійкими наслідками?",
+    qiMeds: "Чи приймаєте / приймали ви ліки у зв'язку з цією травмою?",
+    qiMon: "Чи перебуваєте ви під регулярним наглядом лікаря у зв'язку з цією травмою?",
+    qiExam: "Чи проходили ви за останні 5 років у зв'язку з цією травмою спеціалізоване медичне обстеження, або чи воно заплановане чи рекомендоване?",
+    qiSick: "Чи перебуваєте ви зараз на лікарняному / чи були ви за останні 3 роки на лікарняному у зв'язку з цією травмою довше ніж 3 тижні?",
+    qiPension: "Чи подаєте / подавали ви заяву на пенсію по інвалідності або чи отримуєте / отримували її у зв'язку з цією травмою?",
+    qiHosp: "Чи були ви за останні 5 років госпіталізовані з цією травмою, або чи госпіталізація запланована чи рекомендована?",
+    qiOp: "Чи були ви прооперовані у зв'язку з цією травмою, або чи операція запланована чи рекомендована?",
+    s8: "Лікар загальної практики",
+    s8desc: "Вкажіть свого лікаря загальної практики (лікар має працювати на території Чехії).",
+    street1: "Вулиця",
+    numPop: "Номер будинку (č. p.)",
+    numOr: "Орієнтаційний номер (č. o.)",
+    dlgText: "В анкеті залишилися незаповнені обов'язкові поля. Продовжити редагування?",
+    dlgContinue: "Продовжити редагування",
+    dlgDownload: "Завантажити PDF з неповними даними",
+    loadText: "Завантажити й відредагувати наявну анкету",
+    loadBtn: "Завантажити PDF",
+    loading: "Завантаження…",
+    loadOk: "Анкету завантажено. Можете продовжити редагування.",
+    loadFail: "У цьому файлі не знайдено даних анкети. Завантажте PDF, збережений із цієї форми.",
+    loadLibFail: "Не вдалося завантажити інструмент для читання PDF. Перевірте підключення до інтернету.",
+    loadMismatch: "Файл створено іншою версією анкети, його не можна завантажити.",
+    pdfDataNote: "Технічні дані для повторного завантаження анкети. Не змінюйте їх.",
+    injHint: "Наприклад: перелом ноги, струс мозку, ампутація руки тощо.",
+    resetBtn: "Очистити форму",
+    resetText: "Ви впевнені, що хочете очистити форму й почати заповнювати заново?",
+    plWhen: "Коли",
+    filledOn: "Заповнено",
+    del: "Видалити",
+    notSet: "не вибрано", linked: "вік і рік пов'язані",
+    needBirth: "Заповніть дату народження в особистих даних, і рік обчислиться автоматично.",
+    outOfRange: "Цьому року відповідає вік {age}, а це поза межами 18–50.",
+    orderErr: "Рік завершення раніший за рік початку.",
+    futureErr: "Рік не може бути в майбутньому.",
+    required: "Це поле обов'язкове.",
+    reqSummary: "Заповніть, будь ласка, обов'язкові поля, позначені червоним.",
+    savePdf: "Зберегти в PDF",
+    pdfHint: "У вікні друку виберіть «Зберегти як PDF»."
+  },
+  en: {
+    title: "Health questionnaire",
+    s1: "Personal details", firstName: "First name", lastName: "Last name", birth: "Date of birth",
+    s2: "Height and weight", height: "Height (cm)", weight: "Weight (kg)",
+    s3: "Smoking", smokeQ: "Do you smoke, or have you smoked in the past?",
+    yes: "Yes", no: "No", status: "Current status",
+    smokeNow: "I still smoke", smokeQuit: "I have quit smoking",
+    smokeStartQ: "At what age did you start smoking?",
+    smokeStopQ: "At what age did you quit smoking?",
+    fromYear: "From year", toYear: "To year", yearPh: "YYYY", month: "Month",
+    cigsNow: "How many cigarettes do you smoke a day?",
+    cigsBefore: "How many cigarettes a day did you smoke before you quit?",
+    cig: ["up to 5", "up to 10", "up to 15", "up to 20", "up to 25", "more than 25"],
+    s4: "Addictions and their treatment",
+    addDesc: "Are you or have you ever been addicted to alcohol or gambling, or has treatment been recommended to you in this connection? Have you used or do you use drugs?",
+    addictionN: "Addiction", addAddiction: "Add another addiction",
+    addWhich: "What kind of addiction is it?", addType: "Type of addiction",
+    chipAlcohol: "Alcohol", chipDrugs: "Drugs, addictive substances", chipGambling: "Gambling", chipMeds: "Medication",
+    addStill: "The addiction is ongoing", addPeriod: "The addiction lasted only for a period",
+    addStartQ: "At what age did you become addicted?",
+    addStopQ: "At what age did you stop being addicted?",
+    s5: "Congenital defects", s5desc: "Do you have, or have you ever had, a congenital defect?",
+    defectN: "Congenital defect", addDefect: "Add another congenital defect",
+    defectDesc: "Description of the defect and any treatment",
+    s6: "Illnesses, health problems, procedures or treatment",
+    s6desc: "Do you have, or have you had at any point in your life, an illness or health problems? Have you undergone, or are you planning to undergo, a procedure or treatment?",
+    exTitle: "Illnesses you do not need to list if treatment lasted no longer than 21 days and has ended:",
+    ex1: "Acute upper respiratory infections (acute inflammation of the tonsils – tonsillitis, adenoids, nasopharynx, pharynx, larynx)",
+    ex2: "Flu, pneumonia, staphylococcal and streptococcal infection",
+    ex3: "Whooping cough, common childhood illnesses had as a child (chickenpox, rubella, measles, mumps, scarlet fever, fifth and sixth disease)",
+    ex4: "Childbirth, caesarean section, acute appendicitis including surgery without complications or lasting effects, acute intestinal infection",
+    ex5: "Allergy, hay fever, food intolerance, if these conditions are without complications, regular medication or hospitalisation.",
+    infoText: "Choose the diagnosis from the list of illnesses. Use \u201cother\u201d only if the illness is not on the list. If \u201cother\u201d is selected, your health cannot be assessed online. Fill in \u201cIllness details\u201d only if you need to add important information that the follow-up questions about the illness do not cover.",
+    illnessN: "Illness", addIllness: "Add another illness",
+    illWhich: "What illness is it?", illType: "Type of illness", acPh: "Start typing or choose from the list", acEmpty: "Nothing found. If the illness is not on the list, choose \u201cOther illness\u201d.",
+    specify: "Illness details",
+    optPeriod: "During a period", optOngoing: "Ongoing", optChild: "In childhood", opt10: "More than 10 years ago",
+    qRepeat: "Has this illness occurred more than once?",
+    firstOcc: "First occurrence (earliest)",
+    qMeds: "Do you take, or have you taken, medication for this illness?",
+    drugN: "Medication", addDrug: "Add another medication", drugName: "Medication name", drugUnknown: "I don't remember the name",
+    drugFreqQ: "How often do you take it?",
+    fPeriod: "During a specific period", fStill: "I still take it", fDontRemember: "I don't remember", fWhenNeeded: "When needed",
+    qMonitored: "Are you regularly monitored for this illness?",
+    doctorN: "Treating doctor", addDoctor: "Add another doctor",
+    facility: "Healthcare facility", town: "Town / district", street: "Street, house number", zip: "Postcode",
+    freq: "Frequency", selectPh: "Select",
+    fqWeekly: "weekly", fqMonthly: "monthly", fqQuarterly: "quarterly", fqHalf: "every six months", fqYearly: "yearly", fqOther: "other",
+    qExam: "In the last 10 years, have you had a specialist medical examination for this illness, or is one planned or recommended?",
+    examN: "Examination", addExam: "Add another examination", examType: "Examination status",
+    stEnded: "Completed", stDone: "Completed", stPlanned: "Planned", stRecommended: "Recommended",
+    inYear: "Year", reason: "Reason",
+    qSick: "In the last 3 years, are you or have you been on sick leave for this illness for longer than 3 weeks?",
+    sickN: "Sick leave", addSick: "Add another sick leave",
+    fromYM: "From (year and month)", toYM: "To (year and month)",
+    qPension: "Are you applying or have you applied for, or do you receive or have you received, a disability pension for this illness?",
+    degree: "Degree", deg1: "Degree I", deg2: "Degree II", deg3: "Degree III", degNone: "Not yet decided",
+    pReceived: "I received it", pReceiving: "I still receive it", pApplying: "I am applying", pApplied: "I applied",
+    qHosp: "In the last 10 years, have you been hospitalised for this illness, or is a hospital stay planned or recommended?",
+    hospN: "Hospital stay", addHosp: "Add another hospital stay", hospType: "Hospital stay status",
+    qOp: "Have you had surgery for this illness, or is surgery planned or recommended?",
+    opN: "Surgery", addOp: "Add another surgery", opType: "Surgery status",
+    setNoText: "Answer \u201cNo\u201d to all the questions above",
+    setNoBtn: "Set all to \u201cNo\u201d",
+    s7: "Injuries",
+    s7desc: "Have you ever had an injury that left permanent consequences? In the last 5 years, have you had an injury that left no permanent consequences?",
+    addInjMinor: "Add an injury without permanent consequences",
+    addInjPerm: "Add an injury with permanent consequences",
+    injuryN: "Injury",
+    tagMinor: "no permanent consequences",
+    tagPerm: "with permanent consequences",
+    injType: "Type of injury",
+    injWhenQ: "When did the injury happen?",
+    injRepeated: "The injury happened repeatedly",
+    injInYear: "The injury happened in a specific year",
+    lastInj: "Most recent injury",
+    firstInj: "First injury (earliest)",
+    permType: "Type of permanent consequences",
+    permMove: "restricted movement",
+    permSwell: "swelling / pain",
+    permOther: "other",
+    permSpecify: "Specify the permanent consequences",
+    injPermWhenQ: "When did the injury with permanent consequences happen?",
+    qiMeds: "Do you take, or have you taken, medication for this injury?",
+    qiMon: "Are you regularly monitored for this injury?",
+    qiExam: "In the last 5 years, have you had a specialist medical examination for this injury, or is one planned or recommended?",
+    qiSick: "Are you currently on sick leave, or in the last 3 years have you been on sick leave for this injury for longer than 3 weeks?",
+    qiPension: "Are you applying or have you applied for, or do you receive or have you received, a disability pension for this injury?",
+    qiHosp: "In the last 5 years, have you been hospitalised for this injury, or is a hospital stay planned or recommended?",
+    qiOp: "Have you had surgery for this injury, or is surgery planned or recommended?",
+    s8: "General practitioner",
+    s8desc: "Please provide your general practitioner (the doctor must be based in the Czech Republic).",
+    street1: "Street",
+    numPop: "Registry number (č. p.)",
+    numOr: "Street number (č. o.)",
+    dlgText: "Some required fields are still empty. Continue editing?",
+    dlgContinue: "Continue editing",
+    dlgDownload: "Download PDF with incomplete information",
+    loadText: "Load and edit an existing questionnaire",
+    loadBtn: "Upload PDF",
+    loading: "Loading…",
+    loadOk: "The questionnaire has been loaded. You can continue editing.",
+    loadFail: "No questionnaire data was found in this file. Please upload a PDF saved from this form.",
+    loadLibFail: "The PDF reader could not be loaded. Please check your internet connection.",
+    loadMismatch: "This file comes from a different version of the questionnaire and cannot be loaded.",
+    pdfDataNote: "Technical data for reloading the questionnaire. Do not edit.",
+    injHint: "E.g. broken leg, concussion, arm amputation, etc.",
+    resetBtn: "Clear form",
+    resetText: "Are you sure you want to clear the form and start again?",
+    plWhen: "When",
+    filledOn: "Completed on",
+    del: "Delete",
+    notSet: "not selected", linked: "age and year are linked",
+    needBirth: "Fill in your date of birth in the personal details and the year will be calculated automatically.",
+    outOfRange: "This year corresponds to age {age}, which is outside the 18–50 range.",
+    orderErr: "The end year is earlier than the start year.",
+    futureErr: "The year cannot be in the future.",
+    required: "This field is required.",
+    reqSummary: "Please fill in the required fields marked in red.",
+    savePdf: "Save as PDF",
+    pdfHint: "In the print dialog, choose \u201cSave as PDF\u201d."
+  },
+  ru: {
+    title: "Медицинская анкета",
+    s1: "Личные данные", firstName: "Имя", lastName: "Фамилия", birth: "Дата рождения",
+    s2: "Рост и вес", height: "Рост (см)", weight: "Вес (кг)",
+    s3: "Курение", smokeQ: "Вы курите или курили раньше?",
+    yes: "Да", no: "Нет", status: "Текущее состояние",
+    smokeNow: "Курю до сих пор", smokeQuit: "Я уже бросил(а) курить",
+    smokeStartQ: "В каком возрасте вы начали курить?",
+    smokeStopQ: "В каком возрасте вы бросили курить?",
+    fromYear: "С года", toYear: "До года", yearPh: "ГГГГ", month: "Месяц",
+    cigsNow: "Сколько сигарет в день вы выкуриваете?",
+    cigsBefore: "Сколько сигарет в день вы выкуривали до того, как бросили?",
+    cig: ["до 5 штук", "до 10 штук", "до 15 штук", "до 20 штук", "до 25 штук", "более 25 штук"],
+    s4: "Зависимости и их лечение",
+    addDesc: "Есть ли или была ли у вас зависимость от алкоголя или азартных игр, рекомендовали ли вам в связи с этим лечение? Употребляли или употребляете ли вы наркотики?",
+    addictionN: "Зависимость", addAddiction: "Добавить ещё одну зависимость",
+    addWhich: "О какой зависимости идёт речь?", addType: "Вид зависимости",
+    chipAlcohol: "Алкоголь", chipDrugs: "Наркотики, психоактивные вещества", chipGambling: "Азартные игры", chipMeds: "Лекарства",
+    addStill: "Зависимость сохраняется до сих пор", addPeriod: "Зависимость была только в определённый период",
+    addStartQ: "В каком возрасте у вас возникла зависимость?",
+    addStopQ: "В каком возрасте вы избавились от зависимости?",
+    s5: "Врождённые пороки", s5desc: "Есть ли у вас или был ли раньше какой-либо врождённый порок?",
+    defectN: "Врождённый порок", addDefect: "Добавить ещё один врождённый порок",
+    defectDesc: "Описание врождённого порока и возможного лечения",
+    s6: "Болезни, проблемы со здоровьем, вмешательства или лечение",
+    s6desc: "Есть ли у вас или были ли в течение жизни заболевания или проблемы со здоровьем? Проходили ли вы или планируете пройти медицинское вмешательство или лечение?",
+    exTitle: "Болезни, которые не нужно указывать, если лечение длилось не более 21 дня и было завершено:",
+    ex1: "Острые инфекции верхних дыхательных путей (острое воспаление нёбных миндалин – ангина, аденоидов, носоглотки, глотки, гортани)",
+    ex2: "Грипп, пневмония (воспаление лёгких), стафилококковая и стрептококковая инфекция",
+    ex3: "Коклюш, обычные детские болезни, перенесённые в детстве (ветряная оспа, краснуха, корь, свинка, скарлатина, пятая и шестая болезнь)",
+    ex4: "Роды, кесарево сечение, острый аппендицит, в том числе с операцией без осложнений и последствий, острая кишечная инфекция",
+    ex5: "Аллергия, аллергический ринит, пищевая непереносимость, если эти заболевания протекают без осложнений, без регулярного приёма лекарств и госпитализации.",
+    infoText: "Выбирайте диагноз из списка заболеваний. Вариант «другое» используйте, только если заболевания нет в списке. Если выбрано «другое», оценить состояние здоровья онлайн невозможно. Поле «Уточнение заболевания» заполняйте, только если нужно добавить важную информацию, которой нет в ответах на дополнительные вопросы о данном заболевании.",
+    illnessN: "Заболевание", addIllness: "Добавить ещё одно заболевание",
+    illWhich: "О каком заболевании идёт речь?", illType: "Вид заболевания", acPh: "Начните вводить или выберите из списка", acEmpty: "Ничего не найдено. Если заболевания нет в списке, выберите «Другое заболевание».",
+    specify: "Уточнение заболевания",
+    optPeriod: "В определённый период", optOngoing: "Продолжается до сих пор", optChild: "В детстве", opt10: "Более 10 лет назад",
+    qRepeat: "Возникало ли у вас это заболевание повторно?",
+    firstOcc: "Первый случай заболевания (самый ранний)",
+    qMeds: "Принимаете / принимали ли вы лекарства в связи с этим заболеванием?",
+    drugN: "Препарат", addDrug: "Добавить ещё один препарат", drugName: "Название препарата", drugUnknown: "Не помню название препарата",
+    drugFreqQ: "Как часто вы принимаете препарат?",
+    fPeriod: "В определённый период", fStill: "Принимаю до сих пор", fDontRemember: "Не помню", fWhenNeeded: "При необходимости",
+    qMonitored: "Находитесь ли вы под регулярным наблюдением врача в связи с этим заболеванием?",
+    doctorN: "Лечащий врач", addDoctor: "Добавить ещё одного врача",
+    facility: "Медицинское учреждение", town: "Населённый пункт, район", street: "Улица, номер дома", zip: "Почтовый индекс",
+    freq: "Частота", selectPh: "Выберите",
+    fqWeekly: "еженедельно", fqMonthly: "ежемесячно", fqQuarterly: "ежеквартально", fqHalf: "раз в полгода", fqYearly: "ежегодно", fqOther: "иначе",
+    qExam: "Проходили ли вы за последние 10 лет в связи с этим заболеванием специализированное медицинское обследование, или оно запланировано или рекомендовано?",
+    examN: "Обследование", addExam: "Добавить ещё одно обследование", examType: "Тип обследования",
+    stEnded: "Завершено", stDone: "Завершено", stPlanned: "Запланировано", stRecommended: "Рекомендовано",
+    inYear: "Год", reason: "Причина",
+    qSick: "Находитесь / находились ли вы за последние 3 года на больничном в связи с этим заболеванием дольше 3 недель?",
+    sickN: "Больничный", addSick: "Добавить ещё один больничный",
+    fromYM: "С (год и месяц)", toYM: "До (год и месяц)",
+    qPension: "Подаёте / подавали ли вы заявление на пенсию по инвалидности или получаете / получали ли её в связи с этим заболеванием?",
+    degree: "Степень", deg1: "I степень", deg2: "II степень", deg3: "III степень", degNone: "Решение ещё не принято",
+    pReceived: "Получал(а)", pReceiving: "Получаю до сих пор", pApplying: "Подаю заявление", pApplied: "Подавал(а) заявление",
+    qHosp: "Были ли вы за последние 10 лет госпитализированы с этим заболеванием, или госпитализация запланирована или рекомендована?",
+    hospN: "Госпитализация", addHosp: "Добавить ещё одну госпитализацию", hospType: "Тип госпитализации",
+    qOp: "Были ли вы прооперированы в связи с этим заболеванием, или операция запланирована или рекомендована?",
+    opN: "Операция", addOp: "Добавить ещё одну операцию", opType: "Операция",
+    setNoText: "Ответить «Нет» на все вопросы выше",
+    setNoBtn: "Везде «Нет»",
+    s7: "Травмы",
+    s7desc: "Получали ли вы когда-либо травму, которая оставила стойкие последствия? Получали ли вы за последние 5 лет травму, которая не оставила стойких последствий?",
+    addInjMinor: "Добавить травму без стойких последствий",
+    addInjPerm: "Добавить травму со стойкими последствиями",
+    injuryN: "Травма",
+    tagMinor: "без стойких последствий",
+    tagPerm: "со стойкими последствиями",
+    injType: "Тип травмы",
+    injWhenQ: "Когда произошла травма?",
+    injRepeated: "Травма повторялась",
+    injInYear: "Травма произошла в определённом году",
+    lastInj: "Последняя травма",
+    firstInj: "Первая травма (самая ранняя)",
+    permType: "Выберите тип стойких последствий",
+    permMove: "ограничение подвижности",
+    permSwell: "отёки / боли",
+    permOther: "другое",
+    permSpecify: "Уточните стойкие последствия",
+    injPermWhenQ: "Когда произошла травма со стойкими последствиями?",
+    qiMeds: "Принимаете / принимали ли вы лекарства в связи с этой травмой?",
+    qiMon: "Находитесь ли вы под регулярным наблюдением врача в связи с этой травмой?",
+    qiExam: "Проходили ли вы за последние 5 лет в связи с этой травмой специализированное медицинское обследование, или оно запланировано или рекомендовано?",
+    qiSick: "Находитесь ли вы сейчас на больничном / были ли вы за последние 3 года на больничном в связи с этой травмой дольше 3 недель?",
+    qiPension: "Подаёте / подавали ли вы заявление на пенсию по инвалидности или получаете / получали ли её в связи с этой травмой?",
+    qiHosp: "Были ли вы за последние 5 лет госпитализированы с этой травмой, или госпитализация запланирована или рекомендована?",
+    qiOp: "Были ли вы прооперированы в связи с этой травмой, или операция запланирована или рекомендована?",
+    s8: "Врач общей практики",
+    s8desc: "Укажите своего врача общей практики (врач должен находиться на территории Чехии).",
+    street1: "Улица",
+    numPop: "Номер дома (č. p.)",
+    numOr: "Ориентационный номер (č. o.)",
+    dlgText: "В анкете остались незаполненные обязательные поля. Продолжить редактирование?",
+    dlgContinue: "Продолжить редактирование",
+    dlgDownload: "Скачать PDF с неполной информацией",
+    loadText: "Загрузить и отредактировать существующую анкету",
+    loadBtn: "Загрузить PDF",
+    loading: "Загрузка…",
+    loadOk: "Анкета загружена. Можно продолжить редактирование.",
+    loadFail: "В этом файле не найдены данные анкеты. Загрузите PDF, сохранённый из этой формы.",
+    loadLibFail: "Не удалось загрузить инструмент для чтения PDF. Проверьте подключение к интернету.",
+    loadMismatch: "Файл создан другой версией анкеты, его нельзя загрузить.",
+    pdfDataNote: "Технические данные для повторной загрузки анкеты. Не изменяйте их.",
+    injHint: "Например: перелом ноги, сотрясение мозга, ампутация руки и т. д.",
+    resetBtn: "Очистить форму",
+    resetText: "Вы уверены, что хотите очистить форму и начать заполнять заново?",
+    plWhen: "Когда",
+    filledOn: "Заполнено",
+    del: "Удалить",
+    notSet: "не выбрано", linked: "возраст и год связаны",
+    needBirth: "Заполните дату рождения в личных данных, и год рассчитается автоматически.",
+    outOfRange: "Этому году соответствует возраст {age}, а это вне диапазона 18–50.",
+    orderErr: "Год окончания раньше года начала.",
+    futureErr: "Год не может быть в будущем.",
+    required: "Это поле обязательно.",
+    reqSummary: "Пожалуйста, заполните обязательные поля, отмеченные красным.",
+    savePdf: "Сохранить в PDF",
+    pdfHint: "В окне печати выберите «Сохранить как PDF»."
+  }
+};
+
+let lang = "cs";
+const LI = { cs: 0, uk: 1, en: 2, ru: 3 };
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const t = k => (T[lang][k] ?? T.cs[k]);
+const CY = new Date().getFullYear();
+const MIN_AGE = 18, MAX_AGE = 50;
+let uid = 0;
+const OTHER_CAT = Number(OTHER_ID.split("-")[0]);
+
+/* Mouse wheel must scroll the page, not change numbers in a focused field */
+document.addEventListener("wheel", e => {
+  const el = document.activeElement;
+  if (el && el.type === "number" && e.target === el) el.blur();
+}, { passive: true });
+
+/* ================= HTML helpers ================= */
+function radios(f, opts, cls = "choices", attr = "", pl = "") {
+  const n = "r" + (++uid);
+  return `<div class="${cls}" role="radiogroup"${pl ? ` data-pl="${pl}"` : ""}>${opts.map(([v, k]) =>
+    `<label><input type="radio" name="${n}" value="${v}" data-f="${f}" ${attr}><span data-i18n="${k}"></span></label>`).join("")}</div>`;
+}
+const yesNo = f => radios(f, [["yes", "yes"], ["no", "no"]], "seg", "data-yn");
+const when = (cond, html, cls = "mt") => `<div class="${cls}" data-when="${cond}" hidden>${html}</div>`;
+const grid = html => `<div class="grid">${html}</div>`;
+const yearF = k => `<label class="field"><span class="lbl" data-i18n="${k}"></span><input type="number" class="yr" inputmode="numeric" min="1900" max="${CY}" data-ph="yearPh"></label>`;
+const textF = (k, cls = "", hint = "") => `<label class="field"><span class="lbl" data-i18n="${k}"></span><input type="text" class="${cls}">${hint ? `<span class="hint-s" data-i18n="${hint}"></span>` : ""}</label>`;
+const selectF = (k, opts, f = "") => `<label class="field"><span class="lbl" data-i18n="${k}"></span><select${f ? ` data-f="${f}"` : ""}><option value="" data-i18n="selectPh"></option>${opts.map(([v, ok]) => `<option value="${v}" data-i18n="${ok}"></option>`).join("")}</select></label>`;
+function ymF(k) {
+  const months = Array.from({ length: 12 }, (_, i) => `<option value="${i + 1}">${String(i + 1).padStart(2, "0")}</option>`).join("");
+  return `<div class="field"><span class="lbl" data-i18n="${k}"></span><div class="ym"><select><option value="" data-i18n="month"></option>${months}</select><input type="number" class="yr" inputmode="numeric" min="1900" max="${CY}" data-ph="yearPh"></div></div>`;
+}
+function acField() {
+  const lid = "al" + (++uid), lb = "lb" + uid;
+  return `<div class="field ac"><span class="lbl" id="${lid}" data-i18n="illType"></span>
+    <div class="ac-box">
+      <input type="text" class="ill-input" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="${lb}" aria-labelledby="${lid}" autocomplete="off" data-ph="acPh">
+      <button type="button" class="ac-toggle no-print" tabindex="-1" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 14 14"><path d="M2.5 5l4.5 4.5L11.5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="ac-list no-print" id="${lb}" role="listbox" hidden></div></div>`;
+}
+const qa = (qk, f, inner) => `<div class="qa"><p class="q" data-i18n="${qk}"></p>${yesNo(f)}${when(f + "=yes", inner)}</div>`;
+const fromTo = (a = "fromYear", b = "toYear") => grid(yearF(a) + yearF(b));
+const SETNO = `<div class="setno no-print"><p data-i18n="setNoText"></p><button type="button" class="btn-sec set-no" data-i18n="setNoBtn"></button></div>`;
+const pensionInner = () => `
+      ${grid(selectF("degree", [["1", "deg1"], ["2", "deg2"], ["3", "deg3"], ["none", "degNone"]]))}
+      <div class="mt">${radios("pension", [["received", "pReceived"], ["receiving", "pReceiving"], ["applying", "pApplying"], ["applied", "pApplied"]], "choices", "", "status")}</div>
+      ${when("pension=received|applied", fromTo())}
+      ${when("pension=receiving|applying", grid(yearF("fromYear")))}`;
+const injuryQs = () => `
+    ${qa("qiMeds", "ynMeds", `<div data-rep="drug"></div>`)}
+    ${qa("qiMon", "ynMon", `<div data-rep="doctor"></div>`)}
+    ${qa("qiExam", "ynExam", `<div data-rep="exam"></div>`)}
+    ${qa("qiSick", "ynSick", `<div data-rep="sick"></div>`)}
+    ${qa("qiPension", "ynPension", pensionInner())}
+    ${qa("qiHosp", "ynHosp", `<div data-rep="hosp"></div>`)}
+    ${qa("qiOp", "ynOp", `<div data-rep="op"></div>`)}
+    ${SETNO}`;
+const STATUS3 = first => [["done", first], ["planned", "stPlanned"], ["rec", "stRecommended"]];
+
+/* ================= Repeatable card templates ================= */
+const REP = {
+  addiction: { title: "addictionN", add: "addAddiction", body: () => `
+    <p class="q" data-i18n="addWhich"></p>
+    ${textF("addType", "add-type")}
+    <div class="chips no-print">${["chipAlcohol", "chipDrugs", "chipGambling", "chipMeds"].map(k =>
+      `<button type="button" data-chip="${k}" data-i18n="${k}" aria-pressed="false"></button>`).join("")}</div>
+    <div class="sub"><p class="q" data-i18n="status"></p>${radios("addStatus", [["still", "addStill"], ["period", "addPeriod"]], "seg wide")}</div>
+    ${when("addStatus=still|period", `
+      <div class="agepair" data-role="start" data-q="addStartQ" data-yl="fromYear"></div>
+      <div class="agepair" data-role="stop" data-q="addStopQ" data-yl="toYear" data-when="addStatus=period" hidden></div>`, "sub")}` },
+
+  defect: { title: "defectN", add: "addDefect", body: () => `
+    <label class="field"><span class="lbl"><span data-i18n="defectDesc"></span> *</span><textarea required></textarea></label>` },
+
+  illness: { title: "illnessN", add: "addIllness", cls: "card-ill card-qs", body: () => `
+    <p class="q" data-i18n="illWhich"></p>
+    ${acField()}
+    <div class="ill-spec mt" hidden><label class="field"><span class="lbl" data-i18n="specify"></span><textarea></textarea></label></div>
+    <div class="sub">
+      ${radios("illWhen", [["period", "optPeriod"], ["ongoing", "optOngoing"], ["child", "optChild"], ["10y", "opt10"]], "choices", "", "plWhen")}
+      ${when("illWhen=period", fromTo())}
+      ${when("illWhen=ongoing", grid(yearF("fromYear")))}
+    </div>
+    ${qa("qRepeat", "ynRepeat", `<p class="q" data-i18n="firstOcc"></p>
+      ${radios("firstWhen", [["period", "optPeriod"], ["child", "optChild"], ["10y", "opt10"]])}
+      ${when("firstWhen=period", fromTo())}`)}
+    ${qa("qMeds", "ynMeds", `<div data-rep="drug"></div>`)}
+    ${qa("qMonitored", "ynMon", `<div data-rep="doctor"></div>`)}
+    ${qa("qExam", "ynExam", `<div data-rep="exam"></div>`)}
+    ${qa("qSick", "ynSick", `<div data-rep="sick"></div>`)}
+    ${qa("qPension", "ynPension", pensionInner())}
+    ${qa("qHosp", "ynHosp", `<div data-rep="hosp"></div>`)}
+    ${qa("qOp", "ynOp", `<div data-rep="op"></div>`)}
+    ${SETNO}` },
+
+  injury: { title: "injuryN", free: true, variants: {
+    minor: { add: "addInjMinor", tag: "tagMinor", cls: "card-inj card-qs", body: () => `
+      ${textF("injType", "", "injHint")}
+      <div class="sub"><p class="q" data-i18n="injWhenQ"></p>
+        ${radios("injWhen", [["repeat", "injRepeated"], ["year", "injInYear"]])}
+        ${when("injWhen=repeat", grid(
+          `<div><p class="q q-prefix" data-i18n="lastInj"></p>${yearF("inYear")}</div><div><p class="q q-prefix" data-i18n="firstInj"></p>${yearF("inYear")}</div>`))}
+        ${when("injWhen=year", grid(yearF("inYear")))}
+      </div>
+      ${injuryQs()}` },
+    perm: { add: "addInjPerm", tag: "tagPerm", cls: "card-inj card-qs", body: () => `
+      <div class="grid">${textF("injType", "", "injHint")}${selectF("permType", [["move", "permMove"], ["swell", "permSwell"], ["other", "permOther"]], "permType")}</div>
+      ${when("permType=other", textF("permSpecify"))}
+      <div class="sub"><p class="q" data-i18n="injPermWhenQ"></p>
+        ${radios("permWhen", [["10y", "opt10"], ["year", "injInYear"]])}
+        ${when("permWhen=year", grid(yearF("inYear")))}
+      </div>
+      ${injuryQs()}` }
+  }},
+
+  drug: { title: "drugN", add: "addDrug", body: () => `
+    ${textF("drugName", "drug-input")}
+    <label class="check"><input type="checkbox" class="drug-unknown"><span data-i18n="drugUnknown"></span></label>
+    <div class="sub"><p class="q" data-i18n="drugFreqQ"></p>
+      ${radios("drugFreq", [["period", "fPeriod"], ["still", "fStill"], ["dk", "fDontRemember"], ["needed", "fWhenNeeded"]])}
+      ${when("drugFreq=period", fromTo())}
+      ${when("drugFreq=still", grid(yearF("fromYear")))}
+    </div>` },
+
+  doctor: { title: "doctorN", add: "addDoctor", body: () => grid(
+    textF("firstName") + textF("lastName") + textF("facility") + textF("town") + textF("street") + textF("zip") +
+    selectF("freq", [["w", "fqWeekly"], ["m", "fqMonthly"], ["q", "fqQuarterly"], ["h", "fqHalf"], ["y", "fqYearly"], ["o", "fqOther"]])) },
+
+  exam: { title: "examN", add: "addExam", body: () => grid(
+    selectF("examType", STATUS3("stEnded")) + yearF("inYear") + textF("reason")) },
+
+  sick: { title: "sickN", add: "addSick", body: () => `
+    ${radios("sickWhen", [["period", "optPeriod"], ["ongoing", "optOngoing"]], "choices", "", "plWhen")}
+    ${when("sickWhen=period", grid(ymF("fromYM") + ymF("toYM")))}
+    ${when("sickWhen=ongoing", grid(ymF("fromYM")))}` },
+
+  hosp: { title: "hospN", add: "addHosp", body: () => grid(selectF("hospType", STATUS3("stDone")) + yearF("inYear")) },
+
+  op: { title: "opN", add: "addOp", body: () => grid(selectF("opType", STATUS3("stDone")) + yearF("inYear")) }
+};
+
+function initRepeater(host) {
+  host.dataset.init = "1";
+  const cfg = REP[host.dataset.rep];
+  const variants = cfg.variants || { main: cfg };
+  host.innerHTML = `<div class="rep-list"></div><div class="${cfg.variants ? "add-row" : ""}">${Object.entries(variants).map(([k, v]) =>
+    `<button type="button" class="btn-add no-print" data-variant="${k}" data-i18n="${v.add}"></button>`).join("")}</div>`;
+  const list = host.firstElementChild;
+
+  const renumber = () => {
+    [...list.children].forEach((c, i) => {
+      const h = $(":scope > .card-head .card-title", c);
+      h.dataset.n = i + 1;
+      h.textContent = `${t(cfg.title)} ${i + 1}`;
+      $(":scope > .card-head .btn-del", c).disabled = !cfg.free && i === 0;
+    });
+  };
+
+  const add = (key, focus) => {
+    const v = variants[key];
+    const card = document.createElement("div");
+    card.className = "card " + (v.cls || cfg.cls || "");
+    card.dataset.scope = "";
+    card.dataset.variant = key;
+    card.innerHTML = `<div class="card-head"><div class="card-name"><h3 class="card-title" data-title="${cfg.title}"></h3>${v.tag ? `<span class="tag" data-i18n="${v.tag}"></span>` : ""}</div><button type="button" class="btn-del no-print" data-i18n="del"></button></div>${v.body()}`;
+    list.append(card);
+    $(":scope > .card-head .btn-del", card).addEventListener("click", () => { card.remove(); renumber(); refreshAll(); });
+    initComponents(card);
+    translate(card);
+    renumber();
+    refreshAll();
+    if (focus) {
+      card.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      const f = $("input[type=text], textarea", card);
+      if (f) f.focus({ preventScroll: true });
+    }
+  };
+
+  $$(":scope > div:last-child > .btn-add", host).forEach(b => b.addEventListener("click", () => add(b.dataset.variant, true)));
+  host._set = keys => { [...list.children].forEach(c => c.remove()); keys.forEach(k => add(k, false)); };
+  if (!cfg.free) add("main", false);
+}
+
+function initComponents(root) {
+  $$("[data-slot]", root).forEach(el => {
+    const [kind, f, opts] = el.dataset.slot.split(":");
+    el.outerHTML = kind === "yn" ? yesNo(f) : radios(f, opts.split(",").map(o => o.split("=")));
+  });
+  $$(".agepair:not([data-init])", root).forEach(buildPair);
+  $$("[data-rep]:not([data-init])", root).forEach(initRepeater);
+}
+
+/* ================= Translation ================= */
+function yearsWord(n) {
+  if (lang === "cs") return "let";
+  if (lang === "en") return "years";
+  const a = n % 10, b = n % 100;
+  const f = (a === 1 && b !== 11) ? 0 : (a >= 2 && a <= 4 && (b < 12 || b > 14)) ? 1 : 2;
+  return lang === "ru" ? ["год", "года", "лет"][f] : ["рік", "роки", "років"][f];
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const dLabel = (id, l = lang) => { const [c, j] = id.split("-").map(Number); return CATS[c].d[j][LI[l]]; };
+
+function translate(root = document) {
+  $$("[data-i18n]", root).forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $$("[data-ph]", root).forEach(el => { el.placeholder = t(el.dataset.ph); });
+  $$("[data-title]", root).forEach(el => { if (el.dataset.n) el.textContent = `${t(el.dataset.title)} ${el.dataset.n}`; });
+  $$("[data-cat-name]", root).forEach(el => { el.textContent = cap(CATS[+el.dataset.catName].n[LI[lang]]); });
+  $$("[data-d]", root).forEach(el => { el.textContent = dLabel(el.dataset.d); });
+}
+
+/* ================= Age ↔ year pairs ================= */
+const pairOf = new Map();
+function birthYear() {
+  const v = $("#birth").value;
+  return v ? parseInt(v.slice(0, 4), 10) : null;
+}
+
+function buildPair(el) {
+  el.dataset.init = "1";
+  const lid = "pl" + (++uid);
+  el.innerHTML = `
+    <p class="q" data-i18n="${el.dataset.q}"></p>
+    <div class="pair">
+      <div>
+        <div class="age-top"><output class="age-out unset"></output></div>
+        <input type="range" min="${MIN_AGE}" max="${MAX_AGE}" step="1" value="${MIN_AGE}" class="unset">
+        <div class="scale" aria-hidden="true"><span>${MIN_AGE}</span><span>${MAX_AGE}</span></div>
+      </div>
+      <div class="year-box">
+        <span class="lbl" id="${lid}" data-i18n="${el.dataset.yl}"></span>
+        <input type="number" inputmode="numeric" min="1900" max="${CY}" aria-labelledby="${lid}" data-ph="yearPh">
+        <div class="link-mark no-print" data-i18n="linked"></div>
+      </div>
+    </div>
+    <p class="note" aria-live="polite"></p>`;
+  const p = {
+    el, range: $("input[type=range]", el), year: $("input[type=number]", el),
+    out: $(".age-out", el), note: $(".note", el), ageSet: false
+  };
+  p.range.addEventListener("input", () => {
+    p.ageSet = true;
+    const by = birthYear();
+    if (by) p.year.value = by + Number(p.range.value);
+    refreshAll();
+  });
+  p.year.addEventListener("input", () => {
+    const y = parseInt(p.year.value, 10), by = birthYear();
+    if (by && p.year.value.length === 4 && y) {
+      const age = y - by;
+      if (age >= MIN_AGE && age <= MAX_AGE) { p.range.value = age; p.ageSet = true; } else p.ageSet = false;
+    }
+    refreshAll();
+  });
+  pairOf.set(el, p);
+}
+
+function refreshPair(p) {
+  const by = birthYear(), age = Number(p.range.value), y = parseInt(p.year.value, 10);
+  p.out.textContent = p.ageSet ? `${age} ${yearsWord(age)}` : t("notSet");
+  p.out.classList.toggle("unset", !p.ageSet);
+  p.range.classList.toggle("unset", !p.ageSet);
+  p.range.setAttribute("aria-valuetext", p.out.textContent);
+  p.range.setAttribute("aria-label", t(p.el.dataset.q));
+
+  let msg = "";
+  if (p.ageSet && !by && !p.year.value) msg = t("needBirth");
+  else if (y && p.year.value.length === 4) {
+    if (y > CY) msg = t("futureErr");
+    else if (by) { const a = y - by; if (a < MIN_AGE || a > MAX_AGE) msg = t("outOfRange").replace("{age}", a); }
+  }
+  if (!msg && p.el.dataset.role === "stop") {
+    const s = pairOf.get(p.el.closest("[data-scope]").querySelector('.agepair[data-role="start"]'));
+    if (s) {
+      const ys = parseInt(s.year.value, 10);
+      if ((ys && y && y < ys) || (!ys && s.ageSet && p.ageSet && age < Number(s.range.value))) msg = t("orderErr");
+    }
+  }
+  p.note.textContent = msg;
+}
+
+function onBirthChange() {
+  const by = birthYear();
+  if (by) pairOf.forEach(p => {
+    if (p.ageSet) p.year.value = by + Number(p.range.value);
+    else if (p.year.value.length === 4) {
+      const a = parseInt(p.year.value, 10) - by;
+      if (a >= MIN_AGE && a <= MAX_AGE) { p.range.value = a; p.ageSet = true; }
+    }
+  });
+  refreshAll();
+}
+
+/* ================= Cigarettes slider ================= */
+const cig = { set: false };
+function buildCig() {
+  const el = $("#cigs");
+  el.innerHTML = `
+    <div class="cig-top"><output class="cig-out unset"></output></div>
+    <input type="range" min="0" max="5" step="1" value="0" class="unset" aria-labelledby="cigQ">
+    <div class="ticks" aria-hidden="true">${["5", "10", "15", "20", "25", "25+"].map((n, i) => `<span style="left:${i * 20}%">${n}</span>`).join("")}</div>`;
+  cig.range = $("input", el);
+  cig.out = $("output", el);
+  cig.range.addEventListener("input", () => { cig.set = true; refreshCig(); });
+}
+function refreshCig() {
+  const label = t("cig")[Number(cig.range.value)];
+  cig.out.textContent = cig.set ? label : t("notSet");
+  cig.out.classList.toggle("unset", !cig.set);
+  cig.range.classList.toggle("unset", !cig.set);
+  cig.range.setAttribute("aria-valuetext", cig.out.textContent);
+}
+
+/* ================= Show / hide ================= */
+function updateVisibility() {
+  $$("[data-when]").forEach(el => {
+    const [f, vals] = el.dataset.when.split("=");
+    const scope = el.parentElement.closest("[data-scope]");
+    let v = null;
+    const s = scope && scope.querySelector(`select[data-f="${f}"]`);
+    if (s) v = s.value;
+    else { const c = scope && scope.querySelector(`input[data-f="${f}"]:checked`); v = c ? c.value : null; }
+    el.hidden = !(v && vals.split("|").includes(v));
+  });
+  const quit = $('#form input[data-f="smokeStatus"]:checked');
+  $("#cigQ").textContent = t(quit && quit.value === "quit" ? "cigsBefore" : "cigsNow");
+  $$(".card-ill").forEach(card => { $(".ill-spec", card).hidden = card.dataset.disease !== OTHER_ID; });
+}
+
+function refreshAll() {
+  pairOf.forEach((p, el) => { if (!el.isConnected) pairOf.delete(el); else refreshPair(p); });
+  refreshCig();
+  updateVisibility();
+}
+
+/* ================= Addiction chips ================= */
+const CHIP_KEYS = ["chipAlcohol", "chipDrugs", "chipGambling", "chipMeds"];
+const splitTypes = input => input.value.split(";").map(s => s.trim()).filter(Boolean);
+function refreshChips(card) {
+  const cur = splitTypes($(".add-type", card)).map(s => s.toLowerCase());
+  $$("[data-chip]", card).forEach(b => b.setAttribute("aria-pressed", cur.includes(t(b.dataset.chip).toLowerCase()) ? "true" : "false"));
+}
+
+/* ================= Illness autocomplete ================= */
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function matchDisease(text) {
+  const v = norm(text.trim());
+  if (!v) return "";
+  for (let i = 0; i < CATS.length; i++)
+    for (let j = 0; j < CATS[i].d.length; j++)
+      if (norm(CATS[i].d[j][LI[lang]]) === v) return `${i}-${j}`;
+  return "";
+}
+function hl(label, nq) {
+  if (!nq) return esc(label);
+  const i = norm(label).indexOf(nq);
+  if (i < 0) return esc(label);
+  return esc(label.slice(0, i)) + "<mark>" + esc(label.slice(i, i + nq.length)) + "</mark>" + esc(label.slice(i + nq.length));
+}
+function acRender(card, query) {
+  const list = $(".ac-list", card), sel = card.dataset.disease || "", nq = norm(query.trim());
+  const opt = (id, label, cls = "") =>
+    `<div class="ac-opt ${cls}" role="option" id="${list.id}-${id}" data-d="${id}" aria-selected="${id === sel}">${hl(label, nq)}</div>`;
+  let html = "", n = 0;
+  CATS.forEach((c, i) => {
+    if (i === OTHER_CAT) return;
+    const items = c.d.map((d, j) => [`${i}-${j}`, d[LI[lang]]]).filter(([, l]) => !nq || norm(l).includes(nq));
+    if (!items.length) return;
+    n += items.length;
+    html += `<div class="ac-group" role="presentation">${esc(cap(c.n[LI[lang]]))}</div>` + items.map(([id, l]) => opt(id, l)).join("");
+  });
+  if (!n) html += `<div class="ac-empty">${esc(t("acEmpty"))}</div>`;
+  html += `<div class="ac-sep" role="presentation"></div>` + opt(OTHER_ID, dLabel(OTHER_ID), "ac-other");
+  list.innerHTML = html;
+}
+function acOpen(card, query) {
+  const list = $(".ac-list", card), input = $(".ill-input", card);
+  acRender(card, query);
+  list.hidden = false;
+  input.setAttribute("aria-expanded", "true");
+  const sel = $('.ac-opt[aria-selected="true"]', list);
+  acSetActive(card, query.trim() ? null : sel);
+  if (sel && !query.trim()) list.scrollTop = sel.offsetTop - list.clientHeight / 2;
+}
+function acClose(card) {
+  $(".ac-list", card).hidden = true;
+  const input = $(".ill-input", card);
+  input.setAttribute("aria-expanded", "false");
+  input.removeAttribute("aria-activedescendant");
+}
+function acSetActive(card, el) {
+  $$(".ac-opt.active", card).forEach(o => o.classList.remove("active"));
+  const input = $(".ill-input", card);
+  if (!el) { input.removeAttribute("aria-activedescendant"); return; }
+  el.classList.add("active");
+  input.setAttribute("aria-activedescendant", el.id);
+  const list = el.parentElement, top = el.offsetTop - 34, bottom = el.offsetTop + el.offsetHeight;
+  if (top < list.scrollTop) list.scrollTop = top;
+  else if (bottom > list.scrollTop + list.clientHeight) list.scrollTop = bottom - list.clientHeight;
+}
+function acMove(card, delta) {
+  const opts = $$(".ac-opt", card), cur = $(".ac-opt.active", card);
+  let i = opts.indexOf(cur) + delta;
+  if (i < 0) i = opts.length - 1;
+  if (i >= opts.length) i = 0;
+  acSetActive(card, opts[i]);
+}
+function acSelect(card, id) {
+  card.dataset.disease = id;
+  const input = $(".ill-input", card);
+  input.value = dLabel(id);
+  input.classList.remove("invalid");
+  acClose(card);
+  updateVisibility();
+}
+document.addEventListener("focusin", e => {
+  if (e.target.matches(".ill-input")) acOpen(e.target.closest(".card-ill"), "");
+});
+document.addEventListener("click", e => {
+  if (e.target.matches(".ill-input")) {
+    const card = e.target.closest(".card-ill");
+    if ($(".ac-list", card).hidden) acOpen(card, "");
+  }
+});
+document.addEventListener("focusout", e => {
+  if (e.target.matches(".ill-input")) {
+    const card = e.target.closest(".card-ill");
+    setTimeout(() => { if (document.activeElement !== e.target) acClose(card); }, 120);
+  }
+});
+document.addEventListener("keydown", e => {
+  if (!e.target.matches(".ill-input")) return;
+  const card = e.target.closest(".card-ill"), list = $(".ac-list", card);
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    if (list.hidden) acOpen(card, "");
+    acMove(card, e.key === "ArrowDown" ? 1 : -1);
+  } else if (e.key === "Enter") {
+    const a = $(".ac-opt.active", card);
+    if (!list.hidden && a) { e.preventDefault(); acSelect(card, a.dataset.d); }
+  } else if (e.key === "Escape") {
+    acClose(card);
+  }
+});
+document.addEventListener("pointerdown", e => {
+  const o = e.target.closest(".ac-opt");
+  if (o) { e.preventDefault(); acSelect(o.closest(".card-ill"), o.dataset.d); return; }
+  const tg = e.target.closest(".ac-toggle");
+  if (tg) {
+    e.preventDefault();
+    const card = tg.closest(".card-ill"), input = $(".ill-input", card);
+    if (!$(".ac-list", card).hidden) acClose(card);
+    else if (document.activeElement === input) acOpen(card, "");
+    else input.focus();
+  }
+});
+
+/* ================= Event delegation ================= */
+document.addEventListener("click", e => {
+  const chip = e.target.closest("[data-chip]");
+  if (chip) {
+    const card = chip.closest("[data-scope]"), input = $(".add-type", card);
+    const items = splitTypes(input), v = t(chip.dataset.chip);
+    const i = items.findIndex(s => s.toLowerCase() === v.toLowerCase());
+    if (i === -1) items.push(v); else items.splice(i, 1);
+    input.value = items.join("; ");
+    refreshChips(card);
+    return;
+  }
+  const setNo = e.target.closest(".set-no");
+  if (setNo) {
+    const card = setNo.closest(".card-qs");
+    $$('input[data-yn][value="no"]', card).forEach(r => { if (r.closest(".card-qs") === card) r.checked = true; });
+    refreshAll();
+  }
+});
+
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (el.matches(".add-type")) refreshChips(el.closest("[data-scope]"));
+  if (el.matches(".ill-input")) {
+    const card = el.closest(".card-ill");
+    card.dataset.disease = matchDisease(el.value);
+    acOpen(card, el.value);
+    updateVisibility();
+  }
+  if (el.classList.contains("invalid") && el.value.trim()) {
+    el.classList.remove("invalid");
+    const err = el.parentElement.querySelector(".err");
+    if (err) err.remove();
+    const sec = el.closest("section.block");
+    if (sec && !$(".invalid", sec)) sec.classList.remove("has-err");
+  }
+});
+
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.matches(".drug-unknown")) {
+    const input = $(".drug-input", el.closest("[data-scope]"));
+    input.disabled = el.checked;
+    if (el.checked) input.value = "";
+  }
+  if (el.type === "radio" || el.matches("select[data-f]")) updateVisibility();
+});
+
+/* ================= Collapsible sections ================= */
+function initSections() {
+  $$("section.block").forEach((sec, i) => {
+    if (sec.hasAttribute("data-fixed")) return;
+    const head = $(".block-head", sec);
+    const body = document.createElement("div");
+    body.className = "block-body";
+    body.id = "sb" + i;
+    while (head.nextSibling) body.append(head.nextSibling);
+    sec.append(body);
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "block-toggle";
+    btn.setAttribute("aria-expanded", "true");
+    btn.setAttribute("aria-controls", body.id);
+    const h2 = $("h2", head), num = $(".num", head);
+    const title = document.createElement("span");
+    title.className = "block-title";
+    title.dataset.i18n = h2.dataset.i18n;
+    delete h2.dataset.i18n;
+    h2.textContent = "";
+    btn.append(num, title);
+    btn.insertAdjacentHTML("beforeend", `<span class="chev no-print" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16"><path d="M3.5 6l4.5 4.5L12.5 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`);
+    h2.append(btn);
+    btn.addEventListener("click", () => setOpen(sec, btn.getAttribute("aria-expanded") !== "true"));
+  });
+}
+function setOpen(sec, open) {
+  if (!$(".block-toggle", sec)) return;
+  $(".block-toggle", sec).setAttribute("aria-expanded", open ? "true" : "false");
+  $(".block-body", sec).hidden = !open;
+  sec.classList.toggle("collapsed", !open);
+}
+
+/* ================= Language ================= */
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.title = t("title");
+  translate(document);
+  $$(".lang-switch button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang ? "true" : "false"));
+  $$(".add-type").forEach(i => refreshChips(i.closest("[data-scope]")));
+  refreshAll();
+}
+function setLang(l) {
+  const old = lang;
+  lang = l;
+  // carry picked values over to the new language
+  $$(".add-type").forEach(input => {
+    input.value = splitTypes(input).map(s => {
+      const k = CHIP_KEYS.find(k => T[old][k].toLowerCase() === s.toLowerCase());
+      return k ? T[l][k] : s;
+    }).join("; ");
+  });
+  $$(".card-ill").forEach(card => { if (card.dataset.disease) $(".ill-input", card).value = dLabel(card.dataset.disease); });
+  $("#langScreen").hidden = true;
+  $("#formScreen").hidden = false;
+  applyLang();
+}
+$$("[data-lang]").forEach(b => b.addEventListener("click", () => {
+  const first = !$("#langScreen").hidden;
+  setLang(b.dataset.lang);
+  if (first) window.scrollTo(0, 0);
+}));
+
+/* ================= PDF ================= */
+const isActive = el => {
+  let n = el.closest("[hidden]");
+  while (n) {
+    if (!n.classList.contains("block-body")) return false;
+    n = n.parentElement && n.parentElement.closest("[hidden]");
+  }
+  return true;
+};
+$("#pdfBtn").addEventListener("click", () => {
+  $$(".err").forEach(e => e.remove());
+  $$(".invalid").forEach(e => e.classList.remove("invalid"));
+  $$(".has-err").forEach(e => e.classList.remove("has-err"));
+  const bad = $$("#form [required]").filter(el => isActive(el) && !el.value.trim());
+  bad.forEach(el => {
+    el.classList.add("invalid");
+    el.insertAdjacentHTML("afterend", `<p class="err">${t("required")}</p>`);
+    const sec = el.closest("section.block");
+    sec.classList.add("has-err");
+    setOpen(sec, true);
+  });
+  if (bad.length) {
+    $("#formMsg").textContent = t("reqSummary");
+    pendingBad = bad;
+    $("#missingDlg").showModal();
+    $("#dlgContinue").focus();
+    return;
+  }
+  $("#formMsg").textContent = "";
+  doPrint();
+});
+let pendingBad = [];
+function goToFirstError() {
+  const el = pendingBad[0];
+  if (!el) return;
+  el.scrollIntoView({ block: "center", behavior: "smooth" });
+  el.focus({ preventScroll: true });
+}
+$("#dlgContinue").addEventListener("click", () => { $("#missingDlg").close(); goToFirstError(); });
+$("#missingDlg").addEventListener("cancel", () => setTimeout(goToFirstError, 0));
+$("#dlgDownload").addEventListener("click", () => { $("#missingDlg").close(); doPrint(); });
+
+/* ================= Printable summary ================= */
+const txt = el => el ? el.textContent.replace(/\s+/g, " ").trim() : "";
+const fmtDate = v => { const m = v.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[3]}.${m[2]}.${m[1]}` : v; };
+function fieldLabel(f) { return txt($(".lbl", f) || $(":scope > label", f)).replace(/\s*\*$/, ""); }
+function fieldValue(f) {
+  const ym = $(".ym", f);
+  if (ym) {
+    const m = $("select", ym).value, y = $("input", ym).value.trim();
+    return m || y ? `${m ? m.padStart(2, "0") : "--"}/${y || "----"}` : "";
+  }
+  const el = $('input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea', f);
+  if (!el || el.disabled) return null;
+  if (el.tagName === "SELECT") return el.value ? el.options[el.selectedIndex].textContent : "";
+  if (el.type === "date") return fmtDate(el.value);
+  return el.value.trim();
+}
+function walk(node, rows, depth) {
+  let q = null, qPrefix = false;
+  for (const c of node.children) {
+    if ((c.hidden && !c.classList.contains("block-body")) || c.classList.contains("no-print") ||
+        c.matches(".err, .note, .block-head, .card-head, .hint-s")) continue;
+    if (c.matches(".q, .desc")) { q = txt(c); qPrefix = c.classList.contains("q-prefix"); continue; }
+    if (c.matches('[role="radiogroup"]')) {
+      const ch = $("input:checked", c);
+      rows.push([q || (c.dataset.pl ? t(c.dataset.pl) : ""), ch ? txt(ch.nextElementSibling) : "", depth]);
+      q = null; continue;
+    }
+    if (c.matches(".agepair")) {
+      const p = pairOf.get(c), parts = [];
+      if (p.ageSet) parts.push(`${p.range.value} ${yearsWord(Number(p.range.value))}`);
+      if (p.year.value) parts.push(`${t(c.dataset.yl).toLowerCase()} ${p.year.value}`);
+      rows.push([t(c.dataset.q), parts.join(", "), depth]);
+      continue;
+    }
+    if (c.id === "cigs") { rows.push([q || "", cig.set ? cig.out.textContent : "", depth]); q = null; continue; }
+    if (c.matches(".field")) {
+      const v = fieldValue(c);
+      if (v !== null) { const l = fieldLabel(c); rows.push([qPrefix && q ? `${q}, ${l.toLowerCase()}` : l, v, depth]); }
+      q = null; continue;
+    }
+    if (c.matches(".check")) { if ($("input", c).checked) rows.push([txt(c), t("yes"), depth]); continue; }
+    if (c.matches(".card")) {
+      const tag = txt($(":scope > .card-head .tag", c));
+      rows.push({ card: txt($(":scope > .card-head .card-title", c)) + (tag ? ` (${tag})` : ""), depth });
+      walk(c, rows, depth + 1);
+      continue;
+    }
+    walk(c, rows, depth);
+  }
+}
+function buildPrintView() {
+  const d = new Date();
+  const today = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")}.${d.getFullYear()}`;
+  const secs = $$("#form section.block").map(sec => {
+    const rows = [];
+    walk(sec, rows, 0);
+    const num = txt($(".num", sec)), title = txt($(".block-title", sec) || $("h2", sec));
+    const body = rows.map(r => r.card
+      ? `<tr class="pv-card"><td colspan="2" style="padding-left:${r.depth * 4}mm">${esc(r.card)}</td></tr>`
+      : `<tr><th style="padding-left:${r[2] * 4}mm">${esc(r[0])}</th><td>${esc(r[1] || "—")}</td></tr>`).join("");
+    return `<section class="pv-sec"><h2>${num ? `<span class="n">${num}</span>` : ""}${esc(title)}</h2><table class="pv">${body}</table></section>`;
+  }).join("");
+  $("#printView").innerHTML = `<header class="pv-head"><h1>${esc(t("title"))}</h1><p>${esc(t("filledOn"))}: ${today}</p></header>${secs}<div id="pdfData" aria-hidden="true"></div>`;
+  fillPdfData();
+}
+
+function doPrint() {
+  buildPrintView();
+  const name = [$("#firstName").value, $("#lastName").value].map(s => s.trim()).filter(Boolean).join(" ");
+  const old = document.title;
+  document.title = name ? `${t("title")} - ${name}` : t("title");
+  window.print();
+  setTimeout(() => { document.title = old; }, 500);
+}
+
+/* ================= Save / load data embedded in the PDF ================= */
+const DATA_VERSION = 1;
+const b64enc = s => { let bin = ""; new TextEncoder().encode(s).forEach(b => { bin += String.fromCharCode(b); }); return btoa(bin); };
+const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s), c => c.charCodeAt(0)));
+const formFields = () => $$("#form input, #form select, #form textarea");
+
+function collect() {
+  const fields = formFields(), vals = {};
+  fields.forEach((el, i) => {
+    if (el.type === "radio" || el.type === "checkbox") { if (el.checked) vals[i] = 1; }
+    else if (el.type !== "range" && el.value) vals[i] = el.value;
+  });
+  return {
+    v: DATA_VERSION, lang, n: fields.length,
+    reps: $$("#form [data-rep]").map(h => [...h.firstElementChild.children].map(c => c.dataset.variant)),
+    vals,
+    ages: $$("#form .agepair").map(el => { const p = pairOf.get(el); return p && p.ageSet ? Number(p.range.value) : null; }),
+    cig: cig.set ? Number(cig.range.value) : null,
+    dis: $$("#form .card-ill").map(c => c.dataset.disease || "")
+  };
+}
+
+function fillPdfData() {
+  const b = b64enc(JSON.stringify(collect()));
+  const lines = [];
+  for (let i = 0; i * 100 < b.length; i++) lines.push(`<div class="pd-line">~Q${String(i).padStart(3, "0")}~${b.slice(i * 100, i * 100 + 100)}~</div>`);
+  $("#pdfData").innerHTML = `<p>${esc(t("pdfDataNote"))}</p>${lines.join("")}<div class="pd-line">~QEND${lines.length}~</div>`;
+}
+window.addEventListener("beforeprint", buildPrintView);
+
+function parsePdfText(text) {
+  const s = text.replace(/\s+/g, "");
+  const end = s.match(/~QEND(\d+)~/);
+  if (!end) return null;
+  const n = Number(end[1]), parts = [];
+  for (const m of s.matchAll(/~Q(\d{3})~([A-Za-z0-9+/=]+)~/g)) parts[Number(m[1])] = m[2];
+  for (let i = 0; i < n; i++) if (!parts[i]) return null;
+  try { return JSON.parse(b64dec(parts.slice(0, n).join(""))); } catch (err) { return null; }
+}
+
+function restore(data) {
+  if (!data || data.v !== DATA_VERSION) return false;
+  setLang(data.lang || lang);
+  for (let i = 0; i < data.reps.length; i++) {
+    const hosts = $$("#form [data-rep]");
+    if (!hosts[i]) return false;
+    hosts[i]._set(data.reps[i]);
+  }
+  const fields = formFields();
+  if (fields.length !== data.n || $$("#form [data-rep]").length !== data.reps.length) return false;
+  fields.forEach((el, i) => {
+    const v = data.vals[i];
+    if (el.type === "radio" || el.type === "checkbox") el.checked = !!v;
+    else if (el.type !== "range") el.value = v ?? "";
+  });
+  $$("#form .agepair").forEach((el, k) => {
+    const p = pairOf.get(el), age = data.ages[k];
+    p.ageSet = age != null;
+    p.range.value = age != null ? age : MIN_AGE;
+  });
+  cig.set = data.cig != null;
+  cig.range.value = data.cig != null ? data.cig : 0;
+  $$("#form .card-ill").forEach((c, k) => { c.dataset.disease = data.dis[k] || ""; });
+  $$(".drug-unknown").forEach(cb => { $(".drug-input", cb.closest("[data-scope]")).disabled = cb.checked; });
+  $$(".add-type").forEach(i => refreshChips(i.closest("[data-scope]")));
+  $$(".err").forEach(e => e.remove());
+  $$(".invalid").forEach(e => e.classList.remove("invalid"));
+  $$(".has-err").forEach(e => e.classList.remove("has-err"));
+  $("#formMsg").textContent = "";
+  refreshAll();
+  return true;
+}
+
+/* pdf.js: first try copies next to index.html (pdf.min.js, pdf.worker.min.js), then the CDN */
+const PDFJS_SOURCES = ["./", "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/"];
+const loadScript = src => new Promise((res, rej) => {
+  const s = document.createElement("script");
+  s.src = src; s.onload = res; s.onerror = () => { s.remove(); rej(new Error(src)); };
+  document.head.append(s);
+});
+async function loadPdfJs() {
+  if (window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions.workerSrc) return window.pdfjsLib;
+  let lib = window.pdfjsLib || window["pdfjs-dist/build/pdf"];
+  for (const base of PDFJS_SOURCES) {
+    if (lib) break;
+    try { await loadScript(base + "pdf.min.js"); lib = window.pdfjsLib || window["pdfjs-dist/build/pdf"]; } catch (err) { /* try next */ }
+  }
+  if (!lib) throw new Error("pdf.js not available");
+  for (const base of PDFJS_SOURCES) {
+    try {
+      const r = await fetch(base + "pdf.worker.min.js");
+      if (!r.ok) continue;
+      lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([await r.text()], { type: "text/javascript" }));
+      window.pdfjsLib = lib;
+      return lib;
+    } catch (err) { /* try next */ }
+  }
+  throw new Error("pdf.js worker not available");
+}
+async function pdfText(buf) {
+  const lib = await loadPdfJs();
+  const pdf = await lib.getDocument({ data: buf }).promise;
+  let text = "";
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const tc = await (await pdf.getPage(p)).getTextContent();
+    text += tc.items.map(i => i.str).join("") + "\n";
+  }
+  return text;
+}
+function loadMsg(key, cls = "") {
+  const m = $("#loadMsg");
+  m.dataset.i18n = key;
+  m.textContent = t(key);
+  m.className = "load-msg " + cls;
+}
+$("#loadBtn").addEventListener("click", () => $("#loadFile").click());
+$("#loadFile").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  loadMsg("loading");
+  let text;
+  try { text = await pdfText(await file.arrayBuffer()); }
+  catch (err) { loadMsg(window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions.workerSrc ? "loadFail" : "loadLibFail", "bad"); return; }
+  const data = parsePdfText(text);
+  if (!data) { loadMsg("loadFail", "bad"); return; }
+  if (!restore(data)) { loadMsg("loadMismatch", "bad"); return; }
+  loadMsg("loadOk", "ok");
+});
+
+/* ================= Reset ================= */
+let BLANK = null;
+$("#resetBtn").addEventListener("click", () => { $("#resetDlg").showModal(); $("#resetCancel").focus(); });
+$("#resetCancel").addEventListener("click", () => $("#resetDlg").close());
+$("#resetConfirm").addEventListener("click", () => {
+  $("#resetDlg").close();
+  restore({ ...BLANK, lang });
+  $$("section.block").forEach(s => setOpen(s, true));
+  const m = $("#loadMsg");
+  m.textContent = ""; delete m.dataset.i18n;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+/* ================= Init ================= */
+initSections();
+buildCig();
+initComponents(document);
+$("#birth").max = new Date().toISOString().slice(0, 10);
+$("#birth").addEventListener("change", onBirthChange);
+$("#birth").addEventListener("input", onBirthChange);
+translate(document);
+refreshAll();
+BLANK = collect();
+
+</script>
+</body>
+</html>
